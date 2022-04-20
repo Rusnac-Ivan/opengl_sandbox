@@ -93,10 +93,6 @@ void View::OnInitialize()
 
         void main()
         {
-            /*float r1 = 10.0 * rand(gl_InstanceID) * ((gl_InstanceID%5)%2 == 0 ? -1.0 : 1.0);
-            float r2 = 10.0 * rand(gl_InstanceID * gl_InstanceID) * ((gl_InstanceID * gl_InstanceID % 5)%2 == 0 ? -1.0 : 1.0);
-            float r3 = 10.0 * rand(gl_InstanceID * gl_InstanceID * gl_InstanceID) * ((gl_InstanceID * gl_InstanceID * gl_InstanceID % 5)%2 == 0 ? -1.0 : 1.0);
-            vec3 pos = aPos + vec3(r1, r2, r3);*/
             FragPos = vec3(model * vec4(aPos, 1.0));
             Normal = aNorm;
 
@@ -150,10 +146,6 @@ void View::OnInitialize()
 
     glm::mat4 model(1.f);
 
-    //mPerspective.SetRange(0.01f, 100.f);
-    //mPerspective.SetFieldOfView(60.f);
-    //mPerspective.ComputeAspectRatio(mWidth, mHeight);
-
     mCamera.Init(glm::vec2(mWidth, mHeight), glm::vec3(0.f, 0.f, -2.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
 
     mProgram.Use();
@@ -163,6 +155,7 @@ void View::OnInitialize()
     mProgram.SetFloat3(mProgram.Uniform("objectColor"), glm::vec3(0.714f, 0.4284, 0.18144));
     mProgram.StopUsing();
 }
+
 void View::OnUpdate()
 {
     mProgram.Use();

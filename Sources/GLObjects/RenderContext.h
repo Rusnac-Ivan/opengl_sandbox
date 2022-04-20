@@ -6,16 +6,6 @@
 
 namespace gl
 {
-	/*namespace Buffer
-	{
-		enum  Bit
-		{
-			COLOR = GL_COLOR_BUFFER_BIT,
-			DEPTH = GL_DEPTH_BUFFER_BIT,
-			STENCIL = GL_STENCIL_BUFFER_BIT
-		};
-	}*/
-
 	enum  BufferBit
 	{
 		COLOR = GL_COLOR_BUFFER_BIT,
@@ -35,7 +25,7 @@ namespace gl
 		static void Clear(const BufferBit buffBit_0, const BufferBit buffBit_1);
 		static void Clear(const BufferBit buffBit_0, const BufferBit buffBit_1, const BufferBit buffBit_2);
 
-		static void SetViewport(const unsigned short &width, const unsigned short &height);
+		static void SetViewport(const unsigned short width, const unsigned short height);
 		static void SetClearColor(const float &red, const float &green, const float &blue, const float &alpha);
 		static void SetClearColor(const glm::vec4 &color);
 		static void SetClearDepth(const float &val);
@@ -58,7 +48,7 @@ namespace gl
 		glClear(buffBit_0 | buffBit_1 | buffBit_2);
 	}
 
-	inline void RenderContext::SetViewport(const unsigned short &width, const unsigned short &height)
+	inline void RenderContext::SetViewport(const unsigned short width, const unsigned short height)
 	{
 		glViewport(0, 0, width, height);
 	}
