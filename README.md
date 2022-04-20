@@ -1,2 +1,2 @@
 # opengl_sandbox
-Wrap the functionality of the OpenGL API.
+Wrapping the functionality of the OpenGL API.
