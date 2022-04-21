@@ -1,51 +1,88 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(TestGL C CXX)
+project(opengl_sandbox C CXX)
 
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(${CMAKE_SOURCE_DIR}/Libraries/glfw-3.3.3)
+# Include cmake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(BUILD_STATIC_LIBS ON)
-add_subdirectory(${CMAKE_SOURCE_DIR}/Libraries/glm-0.9.9.8)
+# Set src and include root path
+set(SRC_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sources/")
+# Set src and include root path
+set(LIBS_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/libraries/")
+
+file(
+    GLOB_RECURSE SOURCE_FILES
+    LIST_DIRECTORIES false
+    "${SRC_ROOT_PATH}/*.c"
+    "${SRC_ROOT_PATH}/*.cpp"
+    "${SRC_ROOT_PATH}/*.h"
+    "${SRC_ROOT_PATH}/*.hpp"
+)
+
+file(
+    GLOB_RECURSE LIBS_FILES
+    LIST_DIRECTORIES false
+    "${LIBS_ROOT_PATH}/*.c"
+    "${LIBS_ROOT_PATH}/*.cpp"
+    "${LIBS_ROOT_PATH}/*.h"
+    "${LIBS_ROOT_PATH}/*.hpp"
+)
+
+foreach(_source IN ITEMS ${SOURCE_FILES})
+    get_filename_component(_source_path "${_source}" PATH)
+    file(RELATIVE_PATH _source_path_rel "${SRC_ROOT_PATH}" "${_source_path}")
+    string(REPLACE "/" "\\" _group_path "${_source_path_rel}")
+    source_group("source\\${_group_path}" FILES "${_source}")
+endforeach()
+
+foreach(_source IN ITEMS ${LIBS_FILES})
+    get_filename_component(_source_path "${_source}" PATH)
+    file(RELATIVE_PATH _source_path_rel "${LIBS_ROOT_PATH}" "${_source_path}")
+    string(REPLACE "/" "\\" _group_path "${_source_path_rel}")
+    source_group("source\\${_group_path}" FILES "${_source}")
+endforeach()
+
+set(GLAD_INCLUDE_DIR "${LIBS_ROOT_PATH}/glad-0.1.34/include")
+
+add_executable(${PROJECT_NAME} ${INCLUDE_LIST} ${SOURCE_FILES} ${LIBS_FILES})
+
+#target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${GLAD_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${SRC_ROOT_PATH}/engine/ ${GLAD_INCLUDE_DIR})
 
 find_package(OpenGL REQUIRED)
 
-include_directories(${CMAKE_SOURCE_DIR}/Sources)
-include_directories(${CMAKE_SOURCE_DIR}/Libraries/glad-0.1.34/include)
-include_directories(${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82)
-include_directories(${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82/backends)
+find_package(GLFW3 REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${GLFW3_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${GLFW3_LIBRARY})
+message(STATUS "GLFW3_INCLUDE_DIR: ${GLFW3_INCLUDE_DIR}")
+message(STATUS "GLFW3_LIBRARY: ${GLFW3_LIBRARY}")
 
-file(GLOB SOURCES_FILES ${CMAKE_SOURCE_DIR}/Libraries/glad-0.1.34/src/glad.c)
-file(GLOB SOURCES_FILES ${SOURCES_FILES} ${CMAKE_SOURCE_DIR}/Sources/main.cpp)
+if(IMGUI_PATH)
+    #message(STATUS "IMGUI_PATH: ${IMGUI_PATH}")
+    set(IMGUI_SRC 
+            ${IMGUI_PATH}/imconfig.h
+            ${IMGUI_PATH}/imgui.cpp
+            ${IMGUI_PATH}/imgui.h
+            ${IMGUI_PATH}/imgui_demo.cpp
+            ${IMGUI_PATH}/imgui_draw.cpp
+            ${IMGUI_PATH}/imgui_internal.h
+            ${IMGUI_PATH}/imgui_tables.cpp
+            ${IMGUI_PATH}/imgui_widgets.cpp
+            ${IMGUI_PATH}/imstb_rectpack.h
+            ${IMGUI_PATH}/imstb_textedit.h
+            ${IMGUI_PATH}/imstb_truetype.h
+            ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp
+            ${IMGUI_PATH}/backends/imgui_impl_opengl3.h
+            ${IMGUI_PATH}/backends/imgui_impl_glfw.cpp
+            ${IMGUI_PATH}/backends/imgui_impl_glfw.h
+    )
+    
+    message(STATUS "IMGUI_SRC: ${IMGUI_SRC}")
+    target_sources(${PROJECT_NAME} PRIVATE ${IMGUI_SRC})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${IMGUI_PATH})
+else()
+    message(FATAL_ERROR "IMGUI_PATH is not set!")
+endif()
 
-file(GLOB ImGui ${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82/*.cpp ${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82/*.h)
-file(GLOB Backend  ${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82/backends/imgui_impl_glfw.cpp ${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82/backends/imgui_impl_glfw.h)
-file(GLOB Backend ${Backend} ${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82/backends/imgui_impl_opengl3.cpp ${CMAKE_SOURCE_DIR}/Libraries/imgui-1.82/backends/imgui_impl_opengl3.h)
-
-file(GLOB Core ${CMAKE_SOURCE_DIR}/Sources/Core/*.cpp ${CMAKE_SOURCE_DIR}/Sources/Core/*.h)
-file(GLOB GLObjects ${CMAKE_SOURCE_DIR}/Sources/GLObjects/*.cpp ${CMAKE_SOURCE_DIR}/Sources/GLObjects/*.h)
-file(GLOB Rendering ${CMAKE_SOURCE_DIR}/Sources/Rendering/*.cpp ${CMAKE_SOURCE_DIR}/Sources/Rendering/*.h)
-file(GLOB Tools ${CMAKE_SOURCE_DIR}/Sources/Tools/*.cpp ${CMAKE_SOURCE_DIR}/Sources/Tools/*.h)
-
-file(GLOB Pieces ${CMAKE_SOURCE_DIR}/Sources/Pieces/*.h)
-
-set(LIBS glm glfw opengl32)
-
-message("Project name: ${PROJECT_NAME}\n")
-message("Source files: ${SOURCES_FILES}\n")
-
-add_executable(${PROJECT_NAME} ${SOURCES_FILES} ${ImGui} ${Backend} ${Core} ${GLObjects} ${Rendering} ${Tools} ${Pieces})
-
-source_group("Backend" FILES ${Backend})
-source_group("ImGui" FILES ${ImGui})
-source_group("Core" FILES ${Core})
-source_group("GLObjects" FILES ${GLObjects})
-source_group("Rendering" FILES ${Rendering})
-source_group("Tools" FILES ${Tools})
-source_group("Pieces" FILES ${Pieces})
-
-target_link_libraries(${PROJECT_NAME} ${LIBS})
-
-
+find_package(glm REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm)
