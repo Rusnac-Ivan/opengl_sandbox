@@ -120,78 +120,78 @@ namespace gl
 
 	inline void Pipeline::EnableDepthTest()
 	{
-		glEnable(GL_DEPTH_TEST);
+		GL(Enable(GL_DEPTH_TEST));
 	}
 	inline void Pipeline::DisableDepthTest()
 	{
-		glDisable(GL_DEPTH_TEST);
+		GL(Disable(GL_DEPTH_TEST));
 	}
 	inline void Pipeline::SetDepthMask(const bool &flag)
 	{
-		glDepthMask(flag);
+		GL(DepthMask(flag));
 	}
 	inline void Pipeline::SetDepthFunc(const CompareFunc &depthFun)
 	{
-		glDepthFunc(static_cast<GLenum>(depthFun));
+		GL(DepthFunc(static_cast<GLenum>(depthFun)));
 	}
 
 	inline void Pipeline::EnableStencilTest()
 	{
-		glEnable(GL_STENCIL_TEST);
+		GL(Enable(GL_STENCIL_TEST));
 	}
 	inline void Pipeline::DisableStencilTest()
 	{
-		glDisable(GL_STENCIL_TEST);
+		GL(Disable(GL_STENCIL_TEST));
 	}
 	inline void Pipeline::SetStencilMask(const int &mask)
 	{
-		glStencilMask(mask);
+		GL(StencilMask(mask));
 	}
 	inline void Pipeline::SetStencilFunc(const CompareFunc &stencilFun, const int &refVal, const int &mask)
 	{
-		glStencilFunc(static_cast<GLenum>(stencilFun), refVal, mask);
+		GL(StencilFunc(static_cast<GLenum>(stencilFun), refVal, mask));
 	}
 	inline void Pipeline::SetStencilOperations(const Action &stencilFail, const Action &depthFail, const Action &depthPass)
 	{
-		glStencilOp(static_cast<GLenum>(stencilFail), static_cast<GLenum>(depthFail), static_cast<GLenum>(depthPass));
+		GL(StencilOp(static_cast<GLenum>(stencilFail), static_cast<GLenum>(depthFail), static_cast<GLenum>(depthPass)));
 	}
 
 	inline void Pipeline::EnableBlending()
 	{
-		glEnable(GL_BLEND);
+		GL(Enable(GL_BLEND));
 	}
 	inline void Pipeline::DisableBlending()
 	{
-		glDisable(GL_BLEND);
+		GL(Disable(GL_BLEND));
 	}
 	inline void Pipeline::SetBlendFunc(const ComputOption &sourceFactor, const ComputOption &destinationFactor)
 	{
-		glBlendFunc(static_cast<GLenum>(sourceFactor), static_cast<GLenum>(destinationFactor));
+		GL(BlendFunc(static_cast<GLenum>(sourceFactor), static_cast<GLenum>(destinationFactor)));
 	}
 	inline void Pipeline::SetBlendFuncSeparate(const ComputOption &sourceFactorRGB, const ComputOption &destinationFactorRGB, const ComputOption &sourceFactorAlpha, const ComputOption &destinationFactorAlpha)
 	{
-		glBlendFuncSeparate(static_cast<GLenum>(sourceFactorRGB), static_cast<GLenum>(destinationFactorRGB), static_cast<GLenum>(sourceFactorAlpha), static_cast<GLenum>(destinationFactorAlpha));
+		GL(BlendFuncSeparate(static_cast<GLenum>(sourceFactorRGB), static_cast<GLenum>(destinationFactorRGB), static_cast<GLenum>(sourceFactorAlpha), static_cast<GLenum>(destinationFactorAlpha)));
 	}
 	inline void Pipeline::SetBlendEquation(const CombineMode &mode)
 	{
-		glBlendEquation(static_cast<GLenum>(mode));
+		GL(BlendEquation(static_cast<GLenum>(mode)));
 	}
 
 	inline void Pipeline::EnableCullFace()
 	{
-		glEnable(GL_CULL_FACE);
+		GL(Enable(GL_CULL_FACE));
 	}
 	inline void Pipeline::DisableCullFace()
 	{
-		glDisable(GL_CULL_FACE);
+		GL(Disable(GL_CULL_FACE));
 	}
 	inline void Pipeline::SetCullFace(const Face &faceForCulling)
 	{
-		glCullFace(static_cast<GLenum>(faceForCulling));
+		GL(CullFace(static_cast<GLenum>(faceForCulling)));
 	}
 	inline void Pipeline::SetFrontFace(const Orientation &orientOfFront)
 	{
-		glFrontFace(static_cast<GLenum>(orientOfFront));
+		GL(FrontFace(static_cast<GLenum>(orientOfFront)));
 	}
 }
 

@@ -95,11 +95,11 @@ namespace gl
         mVertexArray.Bind();
         if (!mEBO)
         {
-            glDrawArrays(static_cast<GLenum>(mode), 0, mVertexCount);
+            GL(DrawArrays(static_cast<GLenum>(mode), 0, mVertexCount));
         }
         else
         {
-            glDrawElements(static_cast<GLenum>(mode), mVertexCount, GL_UNSIGNED_BYTE, nullptr);
+            GL(DrawElements(static_cast<GLenum>(mode), mVertexCount, GL_UNSIGNED_BYTE, nullptr));
         }
         mVertexArray.UnBind();
     }
@@ -108,11 +108,11 @@ namespace gl
         mVertexArray.Bind();
         if (!mEBO)
         {
-            glDrawArraysInstanced(static_cast<GLenum>(mode), 0, mVertexCount, instanceCount);
+            GL(DrawArraysInstanced(static_cast<GLenum>(mode), 0, mVertexCount, instanceCount));
         }
         else
         {
-            glDrawElementsInstanced(static_cast<GLenum>(mode), mVertexCount, GL_UNSIGNED_BYTE, nullptr, instanceCount);
+            GL(DrawElementsInstanced(static_cast<GLenum>(mode), mVertexCount, GL_UNSIGNED_BYTE, nullptr, instanceCount));
         }
         mVertexArray.UnBind();
     }

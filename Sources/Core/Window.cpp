@@ -5,7 +5,7 @@ static void glfw_error_callback(int error, const char* description)
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-void GLAPIENTRY 
+/*void GLAPIENTRY
 MessageCallback(GLenum source,
 	GLenum type,
 	GLuint id,
@@ -18,7 +18,7 @@ MessageCallback(GLenum source,
 		(type == GL_DEBUG_TYPE_ERROR ? "!!! GL ERROR !!!" : ""),
 		type, severity, message);
 	assert(type != GL_DEBUG_TYPE_ERROR && "OpenGL throw ERROR!");
-}
+}*/
 
 void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 {
@@ -60,14 +60,8 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 		exit(1);
 	}
 
-	/*if (gladLoadGL() == NULL)
-	{
-		fprintf(stderr, "Failed to initialize OpenGL loader!\n");
-		exit(1);
-	}*/
-
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(MessageCallback, NULL);
+	//glEnable(GL_DEBUG_OUTPUT);
+	//glDebugMessageCallback(MessageCallback, NULL);
 
 	mGUI.Init(glsl_version);
 

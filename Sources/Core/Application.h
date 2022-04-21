@@ -53,8 +53,9 @@ public:
 	}
 
 private:
-	Window mWindow;
+	
 	View* mView;
+	Window mWindow;
 };
 
 #endif

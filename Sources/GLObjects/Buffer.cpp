@@ -6,7 +6,7 @@ namespace gl
 
 	Buffer::Buffer() : mID(0), mCurrentTarget(Target::UNKNOWN), mAccessFreq(Access::UNKNOWN)
 	{
-		glGenBuffers(1, &mID);
+		GL(GenBuffers(1, &mID));
 		assert(mID != 0 && "Failed to generate buffer!");
 	}
 
@@ -14,7 +14,7 @@ namespace gl
 	{
 		if (!mID)
 		{
-			glDeleteBuffers(1, &mID);
+			GL(DeleteBuffers(1, &mID));
 			mID = 0;
 		}
 	}
@@ -23,13 +23,13 @@ namespace gl
 	{
 		mCurrentTarget = target;
 		//assert(mBindingTarget != BindingTarget::UNDEFINED && "Use undefined binding target!");
-		glBindBuffer(static_cast<GLenum>(mCurrentTarget), mID);
+		GL(BindBuffer(static_cast<GLenum>(mCurrentTarget), mID));
 	}
 
 	void Buffer::UnBind()
 	{
 		//assert(mBindingTarget != BindingTarget::UNDEFINED && "Use undefined binding target!");
-		glBindBuffer(static_cast<GLenum>(mCurrentTarget), 0);
+		GL(BindBuffer(static_cast<GLenum>(mCurrentTarget), 0));
 		mCurrentTarget = Target::UNKNOWN;
 	}
 
@@ -42,12 +42,12 @@ namespace gl
 		{
 			case Target::ARRAY:
 			{
-				glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentBinding);
+				GL(GetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
 			break;
 			case Target::ELEMENT_ARRAY:
 			{
-				glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentBinding);
+				GL(GetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
 			break;
 			default:
@@ -58,7 +58,7 @@ namespace gl
 		assert(mAccessFreq != Access::UNKNOWN && "Use undefined access frequency!");
 #endif
 
-		glBufferData(static_cast<GLenum>(mCurrentTarget), size, data, static_cast<GLenum>(mAccessFreq));
+		GL(BufferData(static_cast<GLenum>(mCurrentTarget), size, data, static_cast<GLenum>(mAccessFreq)));
 	}
 
 	void Buffer::SubData(const unsigned short &offset, const unsigned short &size, const void *data)
@@ -69,12 +69,12 @@ namespace gl
 		{
 			case Target::ARRAY:
 			{
-				glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentBinding);
+				GL(GetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
 			break;
 			case Target::ELEMENT_ARRAY:
 			{
-				glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentBinding);
+				GL(GetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
 			break;
 			default:
@@ -84,7 +84,7 @@ namespace gl
 		assert(mCurrentTarget != Target::UNKNOWN && "Use undefined binding target!");
 #endif
 
-		glBufferSubData(static_cast<GLenum>(mCurrentTarget), offset, size, data);
+		GL(BufferSubData(static_cast<GLenum>(mCurrentTarget), offset, size, data));
 	}
 }
 

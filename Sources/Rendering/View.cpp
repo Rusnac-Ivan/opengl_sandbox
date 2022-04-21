@@ -70,11 +70,15 @@ void View::OnDestroy()
 
 void View::OnInitialize()
 {
+    mBishop = std::make_unique<gl::Vertices>();
+    mKnight = std::make_unique<gl::Vertices>();
+    mProgram = std::make_unique<gl::Program>();
+
     gl::RenderContext::SetClearColor(0.0f, 0.3f, 0.2f, 1.00f);
     gl::Pipeline::EnableDepthTest();
 
-    mBishop.AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __bishop_vert_count, sizeof(__bishop_vert), __bishop_vert);
-    mKnight.AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __knight_vert_count, sizeof(__knight_vert), __knight_vert);
+    mBishop->AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __bishop_vert_count, sizeof(__bishop_vert), __bishop_vert);
+    mKnight->AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __knight_vert_count, sizeof(__knight_vert), __knight_vert);
 
     const char *vertShader = GLSL(
         layout(location = 0) in vec3 aPos;
@@ -140,28 +144,28 @@ void View::OnInitialize()
     vertSh.LoadSources(1, &vertShader, &vertShSize);
     fragSh.LoadSources(1, &fragShader, &fragShSize);
 
-    mProgram.Attach(&vertSh, &fragSh, NULL);
+    mProgram->Attach(&vertSh, &fragSh, NULL);
 
-    mProgram.Link();
+    mProgram->Link();
 
     glm::mat4 model(1.f);
 
     mCamera.Init(glm::vec2(mWidth, mHeight), glm::vec3(0.f, 0.f, -2.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
 
-    mProgram.Use();
-    mProgram.SetMatrix4(mProgram.Uniform("model"), model);
-    mProgram.SetMatrix4(mProgram.Uniform("projection"), mCamera.GetProjectMat());
-    mProgram.SetFloat3(mProgram.Uniform("lightColor"), glm::vec3(1.f, 1.f, 1.f));
-    mProgram.SetFloat3(mProgram.Uniform("objectColor"), glm::vec3(0.714f, 0.4284, 0.18144));
-    mProgram.StopUsing();
+    mProgram->Use();
+    mProgram->SetMatrix4(mProgram->Uniform("model"), model);
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    mProgram->SetFloat3(mProgram->Uniform("lightColor"), glm::vec3(1.f, 1.f, 1.f));
+    mProgram->SetFloat3(mProgram->Uniform("objectColor"), glm::vec3(0.714f, 0.4284, 0.18144));
+    mProgram->StopUsing();
 }
 
 void View::OnUpdate()
 {
-    mProgram.Use();
+    mProgram->Use();
 
-    mProgram.SetFloat3(mProgram.Uniform("lightPos"), mCamera.GetPosition());
-    mProgram.SetFloat3(mProgram.Uniform("viewPos"), mCamera.GetPosition());
+    mProgram->SetFloat3(mProgram->Uniform("lightPos"), mCamera.GetPosition());
+    mProgram->SetFloat3(mProgram->Uniform("viewPos"), mCamera.GetPosition());
 
     glm::mat4 model = glm::mat4(1.0f);
 
@@ -170,21 +174,24 @@ void View::OnUpdate()
 
     //glm::mat4 model1 = glm::scale(model, glm::vec3(1.f, 5.f, 5.f));
 
-    mProgram.SetMatrix4(mProgram.Uniform("view"), mCamera.GetViewMat());
+    mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
 
     gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
 
-    mProgram.SetMatrix4(mProgram.Uniform("model"), model1);
-    mBishop.Draw(gl::Primitive::TRIANGLES);
-    mProgram.SetMatrix4(mProgram.Uniform("model"), model2);
-    mKnight.Draw(gl::Primitive::TRIANGLES);
+    mProgram->SetMatrix4(mProgram->Uniform("model"), model1);
+    mBishop->Draw(gl::Primitive::TRIANGLES);
+    mProgram->SetMatrix4(mProgram->Uniform("model"), model2);
+    mKnight->Draw(gl::Primitive::TRIANGLES);
 
-    mProgram.StopUsing();
+    mProgram->StopUsing();
 
     mCamera.Update();
 }
 void View::OnFinalize()
 {
+    mBishop.release();
+    mKnight.release();
+    mProgram.release();
 }
 
 void View::OnMouseLeftDown(double x, double y)
@@ -236,7 +243,7 @@ void View::OnResize(int width, int height)
     mHeight = height;
     gl::RenderContext::SetViewport(width, height);
     mCamera.Resize(glm::vec2(width, height));
-    mProgram.Use();
-    mProgram.SetMatrix4(mProgram.Uniform("projection"), mCamera.GetProjectMat());
-    mProgram.StopUsing();
+    mProgram->Use();
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    mProgram->StopUsing();
 }

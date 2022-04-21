@@ -90,30 +90,30 @@ namespace gl
 
 	Framebuffer::Framebuffer() : mWidth(0), mHeight(0), mProgram(nullptr), mPosAttribLoc(-1), mUVAttribLoc(-1)
 	{
-		glGenFramebuffers(1, &mID);
+		GL(GenFramebuffers(1, &mID));
 		assert(mID != 0 && "Failed to generate Framebuffer!");
 	}
 
 	Framebuffer::~Framebuffer()
 	{
-		glDeleteFramebuffers(1, &mID);
+		GL(DeleteFramebuffers(1, &mID));
 	}
 
 	void Framebuffer::Bind(BindType type)
 	{
 		GLenum bind_type = static_cast<GLenum>(type);
-		glBindFramebuffer(bind_type, mID);
+		GL(BindFramebuffer(bind_type, mID));
 	}
 
 	void Framebuffer::UnBind(BindType type)
 	{
 		GLenum bind_type = static_cast<GLenum>(type);
-		glBindFramebuffer(bind_type, NULL);
+		GL(BindFramebuffer(bind_type, NULL));
 	}
 
 	bool Framebuffer::CheckFramebufferStatus()
 	{
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		GLenum status = GL(CheckFramebufferStatus(GL_FRAMEBUFFER));
 		if (status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)
 		{
 			assert("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
@@ -191,7 +191,7 @@ namespace gl
 		Bind(BindType::ReadAndDraw);
 		GLenum texture_type = static_cast<GLenum>(TextureType::TARGET_2D);
 		GLenum bind_type = static_cast<GLenum>(BindType::ReadAndDraw);
-		glFramebufferTexture2D(bind_type, (GLenum)attach_type, texture_type, attachment->texture.GetId(), 0);
+		GL(FramebufferTexture2D(bind_type, (GLenum)attach_type, texture_type, attachment->texture.GetId(), 0));
 		UnBind(BindType::ReadAndDraw);
 
 		Texture2D* ptr_texture = &attachment->texture;

@@ -8,7 +8,7 @@ namespace gl
 	template <ShaderType Shader_Type>
 	Shader<Shader_Type>::Shader() : IShader(), mID(0)
 	{
-		mID = glCreateShader(static_cast<GLenum>(Shader_Type));
+		mID = GL(CreateShader(static_cast<GLenum>(Shader_Type)));
 		assert(mID != 0 && "Failed to create shader!");
 	}
 
@@ -17,16 +17,16 @@ namespace gl
 	{
 		if (!mID)
 		{
-			glDeleteShader(mID);
+			GL(DeleteShader(mID));
 		}
 	}
 
 	template <ShaderType Shader_Type>
 	void Shader<Shader_Type>::LoadSources(const unsigned short &count, const char **shaderCodes, const int *codeLengths)
 	{
-		glShaderSource(mID, count, shaderCodes, codeLengths);
+		GL(ShaderSource(mID, count, shaderCodes, codeLengths));
 
-		glCompileShader(mID);
+		GL(CompileShader(mID));
 
 		CheckCompile();
 	}
@@ -37,14 +37,14 @@ namespace gl
 		GLint is_success;
 		char infoLog[1024];
 
-		glGetShaderiv(mID, GL_COMPILE_STATUS, &is_success);
+		GL(GetShaderiv(mID, GL_COMPILE_STATUS, &is_success));
 		if (!is_success)
 		{
 
-			glGetShaderInfoLog(mID, 1024, nullptr, infoLog);
+			GL(GetShaderInfoLog(mID, 1024, nullptr, infoLog));
 			fprintf(stderr, "Failed to compile shader: %s\n", infoLog);
 
-			glDeleteShader(mID);
+			GL(DeleteShader(mID));
 			mID = 0;
 
 			exit(1);

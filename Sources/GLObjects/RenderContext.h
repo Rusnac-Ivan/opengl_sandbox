@@ -36,41 +36,41 @@ namespace gl
 
 	inline void RenderContext::Clear(const BufferBit buffBit)
 	{
-		glClear(buffBit);
+		GL(Clear(buffBit));
 	}
 
 	inline void RenderContext::Clear(const BufferBit buffBit_0, const BufferBit buffBit_1)
 	{
-		glClear(buffBit_0 | buffBit_1);
+		GL(Clear(buffBit_0 | buffBit_1));
 	}
 	inline void RenderContext::Clear(const BufferBit buffBit_0, const BufferBit buffBit_1, const BufferBit buffBit_2)
 	{
-		glClear(buffBit_0 | buffBit_1 | buffBit_2);
+		GL(Clear(buffBit_0 | buffBit_1 | buffBit_2));
 	}
 
 	inline void RenderContext::SetViewport(const unsigned short width, const unsigned short height)
 	{
-		glViewport(0, 0, width, height);
+		GL(Viewport(0, 0, width, height));
 	}
 
 	inline void RenderContext::SetClearColor(const float &red, const float &green, const float &blue, const float &alpha)
 	{
-		glClearColor(red, green, blue, alpha);
+		GL(ClearColor(red, green, blue, alpha));
 	}
 
 	inline void RenderContext::SetClearColor(const glm::vec4 &color)
 	{
-		glClearColor(color.r, color.g, color.b, color.a);
+		GL(ClearColor(color.r, color.g, color.b, color.a));
 	}
 
 	inline void RenderContext::SetClearDepth(const float &val)
 	{
-		glClearDepth(val);
+		GL(ClearDepth(val));
 	}
 
 	inline void RenderContext::SetClearStencil(const int &val)
 	{
-		glClearStencil(val);
+		GL(ClearStencil(val));
 	}
 }
 

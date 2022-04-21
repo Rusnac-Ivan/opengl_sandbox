@@ -21,8 +21,10 @@ enum struct DataType
 
 #define ASSERT(x) if(!(x)) __debugbreak();
 
-#define GL(line)\
-        {\
+#ifdef NDEBUG
+    #define GL(line) gl##line
+#else
+    #define GL(line)\
             gl##line;\
             do{\
                 GLenum error = glGetError( );\
@@ -38,6 +40,9 @@ enum struct DataType
                     default: break;\
                 }\
             } while (0); \
-        }
+            
+     
+
+#endif
 
 #endif

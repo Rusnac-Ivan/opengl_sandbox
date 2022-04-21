@@ -7,6 +7,7 @@
 #include <Tools/Frustum.h>
 #include <GLObjects/Program.h>
 #include <Rendering/RubiksCube.h>
+#include <memory>
 
 class View
 {
@@ -14,10 +15,10 @@ private:
     Camera mCamera;
     //Perspective mPerspective;
     
-    gl::Vertices mBishop;
-    gl::Vertices mKnight;
+    std::unique_ptr<gl::Vertices> mBishop;
+    std::unique_ptr<gl::Vertices> mKnight;
 
-    gl::Program mProgram;
+    std::unique_ptr<gl::Program> mProgram;
     float mWidth;
     float mHeight;
     //RubiksCube mRubiksCube;

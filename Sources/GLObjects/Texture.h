@@ -130,7 +130,7 @@ namespace gl
 	template <TextureType Target>
 	Texture<Target>::Texture()
 	{
-		glGenTextures(1, &mID);
+		GL(GenTextures(1, &mID));
 		assert(mID != 0 && "Failed to generate texture!");
 	}
 
@@ -138,37 +138,37 @@ namespace gl
 	Texture<Target>::~Texture()
 	{
 		if (mID != 0)
-			glDeleteTextures(1, &mID);
+			GL(DeleteTextures(1, &mID));
 	}
 
 	template <TextureType Target>
 	void Texture<Target>::Bind()
 	{
 		GLenum target = static_cast<GLenum>(mTarget);
-		glBindTexture(target, mID);
+		GL(BindTexture(target, mID));
 	}
 
 	template <TextureType Target>
 	void Texture<Target>::UnBind()
 	{
 		GLenum target = static_cast<GLenum>(mTarget);
-		glBindTexture(target, NULL);
+		GL(BindTexture(target, NULL));
 	}
 
 	template <TextureType Target>
 	void Texture<Target>::Activate(const unsigned short& unit)
 	{
 		GLenum target = static_cast<GLenum>(mTarget);
-		glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(target, mID);
+		GL(ActiveTexture(GL_TEXTURE0 + unit));
+		GL(BindTexture(target, mID));
 	}
 
 	template <TextureType Target>
 	void Texture<Target>::Deactivate(const unsigned short& unit)
 	{
 		GLenum target = static_cast<GLenum>(mTarget);
-		glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(target, NULL);
+		GL(ActiveTexture(GL_TEXTURE0 + unit));
+		GL(BindTexture(target, NULL));
 	}
 
 
@@ -233,7 +233,7 @@ namespace gl
 		GLenum form = static_cast<GLenum>(format);
 		GLenum data_type = static_cast<GLenum>(type);
 		Bind();
-		glTexImage2D(target, level, in_form, width, height, border, form, data_type, pixels);
+		GL(TexImage2D(target, level, in_form, width, height, border, form, data_type, pixels));
 		UnBind();
 	}
 
@@ -249,7 +249,7 @@ namespace gl
 			GLenum param_name = static_cast<GLenum>(param_pair.first);
 			GLenum param_value = static_cast<GLenum>(param_pair.second);
 
-			glTexParameteri(target, param_name, param_value);
+			GL(TexParameteri(target, param_name, param_value));
 		}
 		UnBind();
 	}
@@ -262,7 +262,7 @@ namespace gl
 		GLenum internal_form = static_cast<GLenum>(mInternalFormat);
 		GLenum data_type = static_cast<GLenum>(mPixelDataFormat);
 		Bind();
-		glTexSubImage2D(target, 0, x, y, width, height, internal_form, data_type, buffer);
+		GL(TexSubImage2D(target, 0, x, y, width, height, internal_form, data_type, buffer));
 		UnBind();
 	}
 
