@@ -3,9 +3,12 @@
 #include <GLObjects/Shader.h>
 #include <Pieces/bishop.inl>
 #include <Pieces/knight.inl>
+#include <ofbx.h>
 
 #include <vector>
 #include <fstream>
+
+//https://github.com/KhronosGroup/glTF
 
 #define GLSL(str) (const char *)"#version 330\n" #str
 

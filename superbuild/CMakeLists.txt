@@ -75,6 +75,20 @@ ExternalProject_Add(glm
     BUILD_ALWAYS            FALSE
 )
 
+ExternalProject_Add(openfbx
+    PREFIX                  ${LIBRARIES_PREFIX}/openfbx
+    DEPENDS                 imgui
+    GIT_REPOSITORY          https://github.com/nem0/OpenFBX.git
+    GIT_TAG                 master
+    UPDATE_DISCONNECTED     TRUE
+    UPDATE_COMMAND          ""
+    CONFIGURE_COMMAND       ""
+    BUILD_COMMAND           ""
+    INSTALL_COMMAND         ""
+)
+ExternalProject_Get_property(openfbx SOURCE_DIR)
+set(OPENFBX_SOURCE_DIR ${SOURCE_DIR})
+
 ExternalProject_Add(opengl_sandbox
     PREFIX              ${LIBRARIES_PREFIX}/opengl_sandbox
     DEPENDS             glm imgui
@@ -82,6 +96,7 @@ ExternalProject_Add(opengl_sandbox
     CMAKE_ARGS          
     CMAKE_CACHE_ARGS    -DGLFW3_ROOT:PATH=${LIBRARIES_INSTALL_PREFIX}/glfw
                         -DIMGUI_PATH:PATH=${IMGUI_SOURCE_DIR}
+                        -DOPENFBX_PATH:PATH=${OPENFBX_SOURCE_DIR}/src
                         -Dglm_DIR:PATH=${LIBRARIES_INSTALL_PREFIX}/glm/lib/cmake/glm
                         -DCMAKE_PREFIX_PATH:STRING=${LIBRARIES_INSTALL_PREFIX}/glm
                         

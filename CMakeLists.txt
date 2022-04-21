@@ -84,5 +84,20 @@ else()
     message(FATAL_ERROR "IMGUI_PATH is not set!")
 endif()
 
+if(OPENFBX_PATH)
+    set(OPENFBX_SRC 
+            ${OPENFBX_PATH}/miniz.c
+            ${OPENFBX_PATH}/miniz.h
+            ${OPENFBX_PATH}/ofbx.cpp
+            ${OPENFBX_PATH}/ofbx.h
+    )
+    message(STATUS "OPENFBX_PATH: ${OPENFBX_PATH}")
+    
+    target_sources(${PROJECT_NAME} PRIVATE ${OPENFBX_SRC})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENFBX_PATH})
+else()
+    message(FATAL_ERROR "OPENFBX_PATH is not set!")
+endif()
+
 find_package(glm REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm)
