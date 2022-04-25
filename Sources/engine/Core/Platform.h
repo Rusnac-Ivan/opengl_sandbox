@@ -3,8 +3,9 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <cassert>
 
-enum struct DataType
+extern enum struct DataType
 {
 	BYTE = GL_BYTE,
 	UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
@@ -16,6 +17,9 @@ enum struct DataType
 	FLOAT = GL_FLOAT,
 	DOUBLE = GL_DOUBLE
 };
+
+
+unsigned short DataSize(const DataType& dataType);
 
 
 

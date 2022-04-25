@@ -4,7 +4,7 @@
 #include <Pieces/bishop.inl>
 #include <Pieces/knight.inl>
 #include <ofbx.h>
-
+#include "Scene.h"
 #include <vector>
 #include <fstream>
 
@@ -55,6 +55,9 @@ float vertices[] = {
     -0.3f, 0.3f, 0.3f, 0.0f, 1.0f, 0.0f,
     -0.3f, 0.3f, -0.3f, 0.0f, 1.0f, 0.0f};
 
+
+Scene::Model mModel;
+
 View::View()
 {
 }
@@ -73,15 +76,24 @@ void View::OnDestroy()
 
 void View::OnInitialize()
 {
-    mBishop = std::make_unique<gl::Vertices>();
-    mKnight = std::make_unique<gl::Vertices>();
+    mBishopVBO = std::make_unique<gl::VertexBuffer>();
+    mKnightVBO = std::make_unique<gl::VertexBuffer>();
+    mBishopVAO = std::make_unique<gl::VertexArray>();
+    mKnightVAO = std::make_unique<gl::VertexArray>();
+
     mProgram = std::make_unique<gl::Program>();
 
     gl::RenderContext::SetClearColor(0.0f, 0.3f, 0.2f, 1.00f);
     gl::Pipeline::EnableDepthTest();
 
-    mBishop->AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __bishop_vert_count, sizeof(__bishop_vert), __bishop_vert);
-    mKnight->AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __knight_vert_count, sizeof(__knight_vert), __knight_vert);
+    mBishopVBO->Data(sizeof(__bishop_vert), __bishop_vert, gl::Buffer::UsageMode::STATIC_DRAW);
+    mBishopVBO->AttributesPattern({ gl::VertexBuffer::AttribType::POSITION, gl::VertexBuffer::AttribType::NORMAL });
+
+    mKnightVBO->Data(sizeof(__knight_vert), __knight_vert, gl::Buffer::UsageMode::STATIC_DRAW);
+    mKnightVBO->AttributesPattern({ gl::VertexBuffer::AttribType::POSITION, gl::VertexBuffer::AttribType::NORMAL });
+
+    //mBishop->AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __bishop_vert_count, sizeof(__bishop_vert), __bishop_vert);
+    //mKnight->AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __knight_vert_count, sizeof(__knight_vert), __knight_vert);
 
     const char *vertShader = GLSL(
         layout(location = 0) in vec3 aPos;
@@ -151,6 +163,10 @@ void View::OnInitialize()
 
     mProgram->Link();
 
+
+    mBishopVAO->LinkVBO(mProgram.get(), mBishopVBO.get(), __bishop_vert_count);
+    mKnightVAO->LinkVBO(mProgram.get(), mKnightVBO.get(), __knight_vert_count);
+
     glm::mat4 model(1.f);
 
     mCamera.Init(glm::vec2(mWidth, mHeight), glm::vec3(0.f, 0.f, -2.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
@@ -161,6 +177,9 @@ void View::OnInitialize()
     mProgram->SetFloat3(mProgram->Uniform("lightColor"), glm::vec3(1.f, 1.f, 1.f));
     mProgram->SetFloat3(mProgram->Uniform("objectColor"), glm::vec3(0.714f, 0.4284, 0.18144));
     mProgram->StopUsing();
+
+
+    mModel.loadFromFile("D:/Libraries/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf");
 }
 
 void View::OnUpdate()
@@ -182,9 +201,9 @@ void View::OnUpdate()
     gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
 
     mProgram->SetMatrix4(mProgram->Uniform("model"), model1);
-    mBishop->Draw(gl::Primitive::TRIANGLES);
+    mBishopVAO->Draw(gl::Primitive::TRIANGLES);
     mProgram->SetMatrix4(mProgram->Uniform("model"), model2);
-    mKnight->Draw(gl::Primitive::TRIANGLES);
+    mKnightVAO->Draw(gl::Primitive::TRIANGLES);
 
     mProgram->StopUsing();
 
@@ -192,8 +211,10 @@ void View::OnUpdate()
 }
 void View::OnFinalize()
 {
-    mBishop.release();
-    mKnight.release();
+    mBishopVBO.release();
+    mKnightVBO.release();
+    mBishopVAO.release();
+    mKnightVAO.release();
     mProgram.release();
 }
 

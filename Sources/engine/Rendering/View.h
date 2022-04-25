@@ -1,12 +1,11 @@
 #ifndef _VIEW_H_
 #define _VIEW_H_
 
-#include <GLObjects/Vertices.h>
 #include <GLObjects/RenderContext.h>
 #include <Tools/Camera.h>
 #include <Tools/Frustum.h>
 #include <GLObjects/Program.h>
-#include <Rendering/RubiksCube.h>
+#include <GLObjects/VertexArray.h>
 #include <memory>
 
 class View
@@ -14,13 +13,15 @@ class View
 private:
     Camera mCamera;
     //Perspective mPerspective;
-    
-    std::unique_ptr<gl::Vertices> mBishop;
-    std::unique_ptr<gl::Vertices> mKnight;
+    std::unique_ptr<gl::VertexBuffer> mBishopVBO;
+    std::unique_ptr<gl::VertexBuffer> mKnightVBO;
+    std::unique_ptr<gl::VertexArray> mBishopVAO;
+    std::unique_ptr<gl::VertexArray> mKnightVAO;
 
     std::unique_ptr<gl::Program> mProgram;
     float mWidth;
     float mHeight;
+
     //RubiksCube mRubiksCube;
 
 public:

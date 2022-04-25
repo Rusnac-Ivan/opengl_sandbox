@@ -99,5 +99,26 @@ else()
     message(FATAL_ERROR "OPENFBX_PATH is not set!")
 endif()
 
+if(TINYGLTF_PATH)
+    message(STATUS "TINYGLTF_PATH: ${TINYGLTF_PATH}")
+    set(TINYGLTF_SRC 
+            ${TINYGLTF_PATH}/json.hpp
+            ${TINYGLTF_PATH}/stb_image.h
+            ${TINYGLTF_PATH}/stb_image_write.h
+            ${TINYGLTF_PATH}/tiny_gltf.h
+            #${TINYGLTF_PATH}/tiny_gltf.cc
+    )
+    target_sources(${PROJECT_NAME} PRIVATE ${TINYGLTF_SRC})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${TINYGLTF_PATH})
+else()
+     message(TINYGLTF_PATH "TINYGLTF_PATH is not set!")
+endif()
+
+#find_package(tinygltf REQUIRED)
+#target_include_directories(${PROJECT_NAME} PRIVATE ${TinyGLTF_INCLUDE})
+#target_link_libraries(${PROJECT_NAME} PRIVATE tinygltf)
+#message(STATUS "TinyGLTF_INCLUDE: ${TinyGLTF_INCLUDE}")
+
 find_package(glm REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm)
+

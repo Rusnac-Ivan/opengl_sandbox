@@ -8,24 +8,16 @@ namespace gl
 	class Buffer
 	{
 		public:
-			enum struct Target
+			enum struct Type
 			{
-				UNKNOWN				= GL_FALSE,
 				ARRAY				= GL_ARRAY_BUFFER,
-				COPY_READ			= GL_COPY_READ_BUFFER,
-				COPY_WRITE			= GL_COPY_WRITE_BUFFER,
-				DRAW_INDIRECT		= GL_DRAW_INDIRECT_BUFFER,
 				ELEMENT_ARRAY		= GL_ELEMENT_ARRAY_BUFFER,
-				PIXEL_PACK			= GL_PIXEL_PACK_BUFFER,
-				PIXEL_UNPACK		= GL_PIXEL_UNPACK_BUFFER,
-				TEXTURE				= GL_TEXTURE_BUFFER,
-				TRANSFORM_FEEDBACK	= GL_TRANSFORM_FEEDBACK_BUFFER,
-				UNIFORM				= GL_UNIFORM_BUFFER
+				UNIFORM				= GL_UNIFORM_BUFFER,
+
+				UNKNOWN				= GL_FALSE,
 			};
-			enum struct Access
+			enum struct UsageMode
 			{
-				UNKNOWN			= GL_FALSE,
-				
 				STREAM_DRAW		= GL_STREAM_DRAW,
 				STREAM_READ		= GL_STREAM_READ,
 				STREAM_COPY		= GL_STREAM_COPY,
@@ -36,34 +28,43 @@ namespace gl
 				
 				DYNAMIC_DRAW	= GL_DYNAMIC_DRAW,
 				DYNAMIC_READ	= GL_DYNAMIC_READ,
-				DYNAMIC_COPY	= GL_DYNAMIC_COPY
+				DYNAMIC_COPY	= GL_DYNAMIC_COPY,
 			};
 		private:
-			unsigned int	mID;
-			Target	mCurrentTarget;
-			Access	mAccessFreq;
+			using ObjectId = unsigned int;
+
+			ObjectId	mID;
+			Type		mCurrentTarget;
+			UsageMode	mAccessFreq;
+			size_t		mByteSize;
 		public:
 			Buffer();
 			~Buffer();
 
 			Buffer(const Buffer&) = delete;
-			Buffer& operator=(const Buffer&) = delete;
-
 			Buffer(Buffer&&) noexcept;
+			Buffer& operator=(const Buffer&) = delete;
 			Buffer& operator=(Buffer&&) noexcept;
 
-			void Bind(Target target);
+			
 			void UnBind();
+			void UnBindBase(size_t index);
 
-			const Target& GetCurrentTarget() const { return mCurrentTarget; }
-			const Access& GetCurrentAccessFrequency() const { return mAccessFreq; }
+			ObjectId GetObjectId() { return mID; }
+			Type GetCurrentType() const { return mCurrentTarget; }
+			UsageMode GetUsageMode() const { return mAccessFreq; }
 
-			//load or update data
-			//void LoadData(const unsigned int& size, const void* data) const;
-			//void Update(const unsigned short& offset, const unsigned short& size, const void* data) const;
+		protected:
+			void Bind(Type target);
+			void BindBase(Type target, size_t index);
 
-			void Data(const unsigned int& size, const void* data, Access accessFreq);
+			void Data(const unsigned int& size, const void* data, UsageMode accessFreq);
 			void SubData(const unsigned short& offset, const unsigned short& size, const void* data);
+
+		private:
+			void Generate();
+			void Delete();
+
 			
 	};
 }

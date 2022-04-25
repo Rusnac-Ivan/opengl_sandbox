@@ -4,13 +4,57 @@
 namespace gl
 {
 
-	Buffer::Buffer() : mID(0), mCurrentTarget(Target::UNKNOWN), mAccessFreq(Access::UNKNOWN)
+	Buffer::Buffer() : mID(0), 
+		mCurrentTarget(Type::UNKNOWN), 
+		mAccessFreq(UsageMode::STATIC_DRAW)
 	{
-		GL(GenBuffers(1, &mID));
-		assert(mID != 0 && "Failed to generate buffer!");
+		Generate();
 	}
 
 	Buffer::~Buffer()
+	{
+		Delete();
+	}
+
+	Buffer::Buffer(Buffer&& other) noexcept
+	{
+		this->mID = other.mID;
+		this->mByteSize = other.mByteSize;
+		this->mCurrentTarget = other.mCurrentTarget;
+		this->mAccessFreq = other.mAccessFreq;
+
+		other.mID = 0;
+		other.mByteSize = 0;
+		other.mCurrentTarget = Type::UNKNOWN;
+		other.mAccessFreq = UsageMode::STATIC_DRAW;
+	}
+
+	Buffer& Buffer::operator=(Buffer&& other) noexcept
+	{
+		this->Delete();
+
+		this->mID = other.mID;
+		this->mByteSize = other.mByteSize;
+		this->mCurrentTarget = other.mCurrentTarget;
+		this->mAccessFreq = other.mAccessFreq;
+
+		other.mID = 0;
+		other.mByteSize = 0;
+		other.mCurrentTarget = Type::UNKNOWN;
+		other.mAccessFreq = UsageMode::STATIC_DRAW;
+
+		return *this;
+	}
+
+	void Buffer::Generate()
+	{
+		if (mID != NULL)
+			Delete();
+
+		GL(GenBuffers(1, &mID));
+		assert(mID != NULL && "Failed to generate buffer!");
+	}
+	void Buffer::Delete()
 	{
 		if (!mID)
 		{
@@ -19,33 +63,43 @@ namespace gl
 		}
 	}
 
-	void Buffer::Bind(Target target)
+	void Buffer::Bind(Type target)
 	{
 		mCurrentTarget = target;
-		//assert(mBindingTarget != BindingTarget::UNDEFINED && "Use undefined binding target!");
+		assert(mCurrentTarget != Type::UNKNOWN && "Use undefined binding target!");
 		GL(BindBuffer(static_cast<GLenum>(mCurrentTarget), mID));
 	}
 
 	void Buffer::UnBind()
 	{
-		//assert(mBindingTarget != BindingTarget::UNDEFINED && "Use undefined binding target!");
 		GL(BindBuffer(static_cast<GLenum>(mCurrentTarget), 0));
-		mCurrentTarget = Target::UNKNOWN;
+		mCurrentTarget = Type::UNKNOWN;
 	}
 
-	void Buffer::Data(const unsigned int& size, const void* data, Access accessFreq)
+	void Buffer::BindBase(Type target, size_t index)
+	{
+		GL(BindBufferBase(static_cast<GLenum>(mCurrentTarget), index, mID));
+	}
+
+	void Buffer::UnBindBase(size_t index)
+	{
+		GL(BindBufferBase(static_cast<GLenum>(mCurrentTarget), index, 0));
+	}
+
+	void Buffer::Data(const unsigned int& size, const void* data, UsageMode accessFreq)
 	{
 		mAccessFreq = accessFreq;
+		mByteSize = size;
 #ifndef NDEBUG
 		int currentBinding = 0;
 		switch (mCurrentTarget)
 		{
-			case Target::ARRAY:
+			case Type::ARRAY:
 			{
 				GL(GetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
 			break;
-			case Target::ELEMENT_ARRAY:
+			case Type::ELEMENT_ARRAY:
 			{
 				GL(GetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
@@ -54,8 +108,7 @@ namespace gl
 				break;
 		}
 		assert(currentBinding == mID && "Not matching Buffer Object!");
-		assert(mCurrentTarget != Target::UNKNOWN && "Use undefined binding target!");
-		assert(mAccessFreq != Access::UNKNOWN && "Use undefined access frequency!");
+		assert(mCurrentTarget != Type::UNKNOWN && "Use undefined binding target!");
 #endif
 
 		GL(BufferData(static_cast<GLenum>(mCurrentTarget), size, data, static_cast<GLenum>(mAccessFreq)));
@@ -67,12 +120,12 @@ namespace gl
 		int currentBinding;
 		switch (mCurrentTarget)
 		{
-			case Target::ARRAY:
+			case Type::ARRAY:
 			{
 				GL(GetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
 			break;
-			case Target::ELEMENT_ARRAY:
+			case Type::ELEMENT_ARRAY:
 			{
 				GL(GetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentBinding));
 			}
@@ -81,7 +134,7 @@ namespace gl
 				break;
 		}
 		assert(currentBinding == mID && "Not matching Buffer Object!");
-		assert(mCurrentTarget != Target::UNKNOWN && "Use undefined binding target!");
+		assert(mCurrentTarget != Type::UNKNOWN && "Use undefined binding target!");
 #endif
 
 		GL(BufferSubData(static_cast<GLenum>(mCurrentTarget), offset, size, data));
