@@ -69,10 +69,19 @@ namespace gl
 		GLenum in_form = static_cast<GLenum>(internalformat);
 		GLenum form = static_cast<GLenum>(format);
 		GLenum data_type = static_cast<GLenum>(type);
-		Bind(mTarget);
+		Bind();
 		GL(TexImage2D(mTarget, level, in_form, width, height, border, form, data_type, pixels));
 
-		UnBind(mTarget);
+		UnBind();
+	}
+
+	void Texture2D::Bind()
+	{
+		Texture::Bind(mTarget);
+	}
+	void Texture2D::UnBind()
+	{
+		Texture::UnBind(mTarget);
 	}
 
 
@@ -95,7 +104,7 @@ namespace gl
 	void Texture2D::SetSampler(const Sampler& sampler)
 	{
 		mSampler = sampler;
-		Bind(mTarget);
+		Bind();
 		GLenum min_fil = static_cast<GLenum>(sampler.minFilter);
 		GLenum mag_fil = static_cast<GLenum>(sampler.magFilter);
 		GLenum wrap_s = static_cast<GLenum>(sampler.wrapModeS);
@@ -108,7 +117,7 @@ namespace gl
 		{
 			GL(GenerateMipmap(mTarget));
 		}
-		UnBind(mTarget);
+		UnBind();
 	}
 
 	void Texture2D::Update(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* buffer)
@@ -116,8 +125,8 @@ namespace gl
 		//GLenum target = static_cast<GLenum>(mTarget);
 		GLenum internal_form = static_cast<GLenum>(mInternalFormat);
 		GLenum data_type = static_cast<GLenum>(mPixelDataFormat);
-		Bind(mTarget);
+		Bind();
 		GL(TexSubImage2D(mTarget, 0, x, y, width, height, internal_form, data_type, buffer));
-		UnBind(mTarget);
+		UnBind();
 	}
 }

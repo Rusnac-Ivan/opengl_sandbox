@@ -222,6 +222,9 @@ namespace gl
 
 			void SetSampler(const Sampler& sampler);
 
+			void Bind();
+			void UnBind();
+
 			void SetTexture2D(int32_t level, Format internalformat, uint32_t width, uint32_t height, uint32_t border, Format format, DataType type, void* pixels);
 
 			void Update(uint32_t x, uint32_t y, uint32_t width, uint32_t height, void* buffer);

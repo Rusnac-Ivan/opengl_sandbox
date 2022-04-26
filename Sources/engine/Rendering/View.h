@@ -13,10 +13,10 @@ class View
 private:
     Camera mCamera;
     //Perspective mPerspective;
-    std::unique_ptr<gl::VertexBuffer> mBishopVBO;
-    std::unique_ptr<gl::VertexBuffer> mKnightVBO;
-    std::unique_ptr<gl::VertexArray> mBishopVAO;
-    std::unique_ptr<gl::VertexArray> mKnightVAO;
+    //std::unique_ptr<gl::VertexBuffer> mBishopVBO;
+    //std::unique_ptr<gl::VertexBuffer> mKnightVBO;
+    //std::unique_ptr<gl::VertexArray> mBishopVAO;
+    //std::unique_ptr<gl::VertexArray> mKnightVAO;
 
     std::unique_ptr<gl::Program> mProgram;
     float mWidth;

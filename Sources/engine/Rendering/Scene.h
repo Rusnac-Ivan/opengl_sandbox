@@ -72,7 +72,7 @@ namespace Scene
 
 	struct Primitive {
 
-		std::vector<std::unique_ptr<gl::VertexBuffer>> vertices;
+		std::unique_ptr<gl::VertexBuffer> vertices;
 		std::unique_ptr<gl::IndexBuffer> indices;
 		std::unique_ptr<gl::VertexArray> VAO;
 
@@ -81,7 +81,7 @@ namespace Scene
 		Material& material;
 		bool hasIndices;
 		BoundingBox bb;
-		Primitive(std::vector<std::unique_ptr<gl::VertexBuffer>>& vertex_buffer, std::unique_ptr<gl::IndexBuffer>& index_buffer, std::unique_ptr<gl::VertexArray>& vao, Material& material);
+		Primitive(std::unique_ptr<gl::VertexBuffer>& vertex_buffer, std::unique_ptr<gl::IndexBuffer>& index_buffer, std::unique_ptr<gl::VertexArray>& vao, Material& material);
 		void setBoundingBox(glm::vec3 min, glm::vec3 max);
 	};
 
@@ -127,9 +127,9 @@ namespace Scene
 			glm::vec3 pos;
 			glm::vec3 normal;
 			glm::vec2 uv0;
-			glm::vec2 uv1;
-			glm::vec4 joint0;
-			glm::vec4 weight0;
+			//glm::vec2 uv1;
+			//glm::vec4 joint0;
+			//glm::vec4 weight0;
 		};
 
 		/*struct Vertices {

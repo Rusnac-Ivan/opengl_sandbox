@@ -42,7 +42,10 @@ namespace gl
 		{
 
 			GL(GetShaderInfoLog(mID, 1024, nullptr, infoLog));
-			fprintf(stderr, "Failed to compile shader: %s\n", infoLog);
+			if(Shader_Type == ShaderType::FRAGMENT)
+				fprintf(stderr, "Failed to compile fragment shader: %s\n", infoLog);
+			else if(Shader_Type == ShaderType::VERTEX)
+				fprintf(stderr, "Failed to compile vertex shader: %s\n", infoLog);
 
 			GL(DeleteShader(mID));
 			mID = 0;
