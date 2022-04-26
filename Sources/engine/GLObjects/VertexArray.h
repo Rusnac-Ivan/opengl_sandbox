@@ -26,7 +26,7 @@ namespace gl
 	private:
 		unsigned int mID;
 		IndexBuffer* mEBO;
-		unsigned int mVertexCount;
+		uint32_t mVertexCount;
 	public:
 		VertexArray();
 		~VertexArray();

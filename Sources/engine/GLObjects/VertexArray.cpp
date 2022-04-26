@@ -41,7 +41,6 @@ namespace gl
 
 	void VertexArray::LinkVBO(Program* program, VertexBuffer* buffer, uint32_t vertexCount)
 	{
-		mVertexCount = vertexCount;
 		this->Bind();
 		buffer->Bind();
 		unsigned short shift = 0;
@@ -81,7 +80,7 @@ namespace gl
 		this->Bind();
 		if (!mEBO)
 		{
-			GL(DrawArrays(static_cast<GLenum>(mode), 0, mVertexCount));
+			GL(DrawArrays(static_cast<GLenum>(mode), 0, mEBO->GetIndexCount()));
 		}
 		else
 		{

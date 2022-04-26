@@ -36,14 +36,17 @@ namespace gl
 			};
 		private:
 			std::vector<Attribute> mAttributes;
-			
 			uint32_t mStrideSize;
+			uint32_t mVertexCount;
 			
 		public:
 			VertexBuffer();
 			~VertexBuffer();
 			
 			uint32_t GetStrideSize() {return mStrideSize;}
+
+			void SetVertexCount(uint32_t count) { mVertexCount = count; }
+			uint32_t GetVertexCount() { return  mVertexCount; }
 
 			void Bind();
 			

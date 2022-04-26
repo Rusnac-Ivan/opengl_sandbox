@@ -7,9 +7,13 @@ namespace gl
 {
 	class IndexBuffer : public Buffer
 	{
+			uint32_t mIndexCount;
 		public:
 			IndexBuffer();
 			~IndexBuffer();
+
+			void SetIndexCount(uint32_t count) { mIndexCount = count; }
+			uint32_t GetIndexCount() { return  mIndexCount; }
 
 			void Bind();
 

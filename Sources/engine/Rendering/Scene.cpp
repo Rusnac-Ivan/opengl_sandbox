@@ -272,8 +272,71 @@ namespace Scene
 		if (node.mesh > -1)
 		{
 			const tinygltf::Mesh mesh = model.meshes[node.mesh];
-			
+
 			Mesh* newMesh = new Mesh(newNode->matrix);
+			for (size_t j = 0; j < mesh.primitives.size(); j++)
+			{
+				const tinygltf::Primitive& primitive = mesh.primitives[j];
+
+				assert(primitive.attributes.find("POSITION") != primitive.attributes.end());
+				assert(primitive.attributes.find("NORMAL") != primitive.attributes.end());
+				assert(primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end());
+
+				const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
+				const tinygltf::BufferView& posView = model.bufferViews[posAccessor.bufferView];
+				const tinygltf::Buffer& posBuffer = model.buffers[posView.buffer];
+
+				const float* bufferPos = reinterpret_cast<const float*>(&posBuffer.data[posView.byteOffset + posAccessor.byteOffset]);
+				const int posByteStride = posAccessor.ByteStride(posView) ? (posAccessor.ByteStride(posView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC3);
+				glm::vec3 posMin = glm::vec3(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]);
+				glm::vec3 posMax = glm::vec3(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]);
+
+				const tinygltf::Accessor& normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
+				const tinygltf::BufferView& normView = model.bufferViews[normAccessor.bufferView];
+				const tinygltf::Buffer& normBuffer = model.buffers[normView.buffer];
+
+				const float* bufferNorm = reinterpret_cast<const float*>(&normBuffer.data[normView.byteOffset + normAccessor.byteOffset]);
+				const int normByteStride = normAccessor.ByteStride(normView) ? (normAccessor.ByteStride(normView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC3);
+
+				const tinygltf::Accessor& texCoordAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+				const tinygltf::BufferView& texCoordView = model.bufferViews[texCoordAccessor.bufferView];
+				const tinygltf::Buffer& texCoordBuffer = model.buffers[texCoordView.buffer];
+
+				const float* bufferTexCoord = reinterpret_cast<const float*>(&texCoordBuffer.data[texCoordView.byteOffset + texCoordAccessor.byteOffset]);
+				const int texCoordByteStride = normAccessor.ByteStride(texCoordView) ? (texCoordAccessor.ByteStride(texCoordView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC3);
+
+
+				std::unique_ptr<gl::VertexBuffer> vertex_buffer = std::make_unique<gl::VertexBuffer>();
+				std::unique_ptr<gl::IndexBuffer> index_buffer = std::make_unique<gl::IndexBuffer>();;
+
+				for (size_t v = 0; v < posAccessor.count; v++) 
+				{
+					Vertex vert{};
+					vert.pos = glm::vec4(glm::make_vec3(&bufferPos[v * posByteStride]), 1.0f);
+					vert.normal = glm::normalize(glm::vec3(bufferNorm ? glm::make_vec3(&bufferNorm[v * normByteStride]) : glm::vec3(0.0f)));
+					vert.uv0 = bufferTexCoord ? glm::make_vec2(&bufferTexCoord[v * texCoordByteStride]) : glm::vec3(0.0f);
+					int a = 0;
+					//vert.uv0 = bufferTexCoordSet0 ? glm::make_vec2(&bufferTexCoordSet0[v * uv0ByteStride]) : glm::vec3(0.0f);
+
+					vertexBuffer.push_back(vert);
+				}
+
+				vertex_buffer->Data(vertexBuffer.size(), vertexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
+
+
+				if (primitive.indices > -1)
+				{
+					const tinygltf::Accessor& accessor = model.accessors[primitive.indices > -1 ? primitive.indices : 0];
+					const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+					const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+
+					const float* bufferIndex = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
+
+					//index_buffer->Data(accessor.count, )
+				}
+			}
+			
+			//Mesh* newMesh = new Mesh(newNode->matrix);
 			for (size_t j = 0; j < mesh.primitives.size(); j++) 
 			{
 				const tinygltf::Primitive& primitive = mesh.primitives[j];
@@ -429,6 +492,8 @@ namespace Scene
 
 					indexCount = static_cast<uint32_t>(accessor.count);
 					const void* dataPtr = &(buffer.data[accessor.byteOffset + bufferView.byteOffset]);
+
+
 
 					switch (accessor.componentType) {
 					case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
