@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.12)
 project(opengl_sandbox C CXX)
 
 # Include cmake modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+if(NOT DEFINED EMSCRIPTEN)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+endif()
 
 # Set src and include root path
 set(SRC_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sources/")
@@ -44,18 +46,39 @@ endforeach()
 
 set(GLAD_INCLUDE_DIR "${LIBS_ROOT_PATH}/glad-0.1.34/include")
 
-add_executable(${PROJECT_NAME} ${INCLUDE_LIST} ${SOURCE_FILES} ${LIBS_FILES})
+
+if(DEFINED EMSCRIPTEN)
+    if (CMAKE_BUILD_TYPE MATCHES Debug)	
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1 -s USE_WEBGL2=1  -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s ASSERTIONS=2 --bind -s WASM=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s TOTAL_MEMORY=1GB -o out.html")
+    else()
+        add_definitions(-DNDEBUG)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1 -s USE_WEBGL2=1 -s USE_GLFW=3 -s AGGRESSIVE_VARIABLE_ELIMINATION=2 --bind -s WASM=1 -s INITIAL_MEMORY=1GB -s MAXIMUM_MEMORY=3GB -s ALLOW_MEMORY_GROWTH=1 -o out.html")
+    endif()
+endif()
+
+if(NOT DEFINED EMSCRIPTEN)
+    add_executable(${PROJECT_NAME} ${INCLUDE_LIST} ${SOURCE_FILES} ${LIBS_FILES})
+else()
+    add_executable(${PROJECT_NAME} ${INCLUDE_LIST} ${SOURCE_FILES})
+endif()
 
 #target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${GLAD_INCLUDE_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE ${SRC_ROOT_PATH}/engine/ ${GLAD_INCLUDE_DIR})
+include_directories(${SRC_ROOT_PATH}/engine)
 
-find_package(OpenGL REQUIRED)
+if(NOT DEFINED EMSCRIPTEN)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${GLAD_INCLUDE_DIR})
 
-find_package(GLFW3 REQUIRED)
-target_include_directories(${PROJECT_NAME} PRIVATE ${GLFW3_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${GLFW3_LIBRARY})
-message(STATUS "GLFW3_INCLUDE_DIR: ${GLFW3_INCLUDE_DIR}")
-message(STATUS "GLFW3_LIBRARY: ${GLFW3_LIBRARY}")
+    find_package(OpenGL REQUIRED)
+
+    find_package(GLFW3 REQUIRED)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${GLFW3_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${GLFW3_LIBRARY})
+    message(STATUS "GLFW3_INCLUDE_DIR: ${GLFW3_INCLUDE_DIR}")
+    message(STATUS "GLFW3_LIBRARY: ${GLFW3_LIBRARY}")
+endif()
+
+
+
 
 if(IMGUI_PATH)
     #message(STATUS "IMGUI_PATH: ${IMGUI_PATH}")

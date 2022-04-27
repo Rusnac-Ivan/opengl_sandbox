@@ -30,33 +30,50 @@ if(NOT DEFINED LIBRARIES_INSTALL_PREFIX)
     set(LIBRARIES_INSTALL_PREFIX ${LIBRARIES_PREFIX}/installed/${CMAKE_SYSTEM_NAME})
 endif()
 
-ExternalProject_Add(glfw
-    PREFIX                  ${LIBRARIES_PREFIX}/glfw
-    GIT_REPOSITORY          https://github.com/glfw/glfw.git
-    GIT_TAG                 3.3.4
-    CMAKE_ARGS              -DCMAKE_INSTALL_PREFIX:PATH=${LIBRARIES_INSTALL_PREFIX}/glfw
-    CMAKE_CACHE_ARGS        -DGLFW_BUILD_DOCS:BOOL=OFF
-                            -DGLFW_BUILD_TESTS:BOOL=OFF
-                            -DGLFW_BUILD_EXAMPLES:BOOL=OFF
-                            
-    UPDATE_DISCONNECTED     TRUE
-    UPDATE_COMMAND          ""
-    BUILD_ALWAYS            FALSE
-)
+if(NOT DEFINED EMSCRIPTEN)
+    ExternalProject_Add(glfw
+        PREFIX                  ${LIBRARIES_PREFIX}/glfw
+        GIT_REPOSITORY          https://github.com/glfw/glfw.git
+        GIT_TAG                 3.3.4
+        CMAKE_ARGS              -DCMAKE_INSTALL_PREFIX:PATH=${LIBRARIES_INSTALL_PREFIX}/glfw
+        CMAKE_CACHE_ARGS        -DGLFW_BUILD_DOCS:BOOL=OFF
+                                -DGLFW_BUILD_TESTS:BOOL=OFF
+                                -DGLFW_BUILD_EXAMPLES:BOOL=OFF
+                                
+        UPDATE_DISCONNECTED     TRUE
+        UPDATE_COMMAND          ""
+        BUILD_ALWAYS            FALSE
+    )
 
-ExternalProject_Add(imgui
-    PREFIX                  ${LIBRARIES_PREFIX}/imgui
-    DEPENDS                 glfw
-    GIT_REPOSITORY          https://github.com/ocornut/imgui.git
-    GIT_TAG                 v1.84
-    UPDATE_DISCONNECTED     TRUE
-    UPDATE_COMMAND          ""
-    CONFIGURE_COMMAND       ""
-    BUILD_COMMAND           ""
-    INSTALL_COMMAND         ""
-)
-ExternalProject_Get_property(imgui SOURCE_DIR)
-set(IMGUI_SOURCE_DIR ${SOURCE_DIR})
+    ExternalProject_Add(imgui
+        PREFIX                  ${LIBRARIES_PREFIX}/imgui
+        DEPENDS                 glfw
+        GIT_REPOSITORY          https://github.com/ocornut/imgui.git
+        GIT_TAG                 v1.84
+        UPDATE_DISCONNECTED     TRUE
+        UPDATE_COMMAND          ""
+        CONFIGURE_COMMAND       ""
+        BUILD_COMMAND           ""
+        INSTALL_COMMAND         ""
+    )
+    ExternalProject_Get_property(imgui SOURCE_DIR)
+    set(IMGUI_SOURCE_DIR ${SOURCE_DIR})
+else()
+    ExternalProject_Add(imgui
+        PREFIX                  ${LIBRARIES_PREFIX}/imgui
+        GIT_REPOSITORY          https://github.com/ocornut/imgui.git
+        GIT_TAG                 v1.84
+        UPDATE_DISCONNECTED     TRUE
+        UPDATE_COMMAND          ""
+        CONFIGURE_COMMAND       ""
+        BUILD_COMMAND           ""
+        INSTALL_COMMAND         ""
+    )
+    ExternalProject_Get_property(imgui SOURCE_DIR)
+    set(IMGUI_SOURCE_DIR ${SOURCE_DIR})
+endif()
+
+
 
 ExternalProject_Add(glm
     PREFIX                  ${LIBRARIES_PREFIX}/glm
@@ -112,6 +129,8 @@ ExternalProject_Add(opengl_sandbox
     CMAKE_ARGS          
     CMAKE_CACHE_ARGS    -DGLFW3_ROOT:PATH=${LIBRARIES_INSTALL_PREFIX}/glfw
                         -DIMGUI_PATH:PATH=${IMGUI_SOURCE_DIR}
+                        -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
+                        -DCMAKE_TOOLCHAIN_ARGS:STRING=${CMAKE_TOOLCHAIN_ARGS}
                         -DOPENFBX_PATH:PATH=${OPENFBX_SOURCE_DIR}/src
                         -Dglm_DIR:PATH=${LIBRARIES_INSTALL_PREFIX}/glm/lib/cmake/glm
                         -DCMAKE_PREFIX_PATH:STRING=${INSTALLATION_PREFIXES_LIST}

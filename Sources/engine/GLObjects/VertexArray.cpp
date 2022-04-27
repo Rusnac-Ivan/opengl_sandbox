@@ -80,11 +80,11 @@ namespace gl
 		this->Bind();
 		if (!mEBO)
 		{
-			GL(DrawArrays(static_cast<GLenum>(mode), 0, mEBO->GetIndexCount()));
+			GL(DrawArrays(static_cast<GLenum>(mode), 0, mVertexCount));
 		}
 		else
 		{
-			GL(DrawElements(static_cast<GLenum>(mode), mVertexCount, GL_UNSIGNED_BYTE, nullptr));
+			GL(DrawElements(static_cast<GLenum>(mode), mEBO->GetIndexCount(), (GLenum)mEBO->GetDataType(), nullptr));
 		}
 		this->UnBind();
 	}

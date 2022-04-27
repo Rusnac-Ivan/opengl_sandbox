@@ -137,7 +137,7 @@ void Camera::Wheel(float val)
 	mDollyCounter = (int)DOLLY_DURATION;
 }
 
-static glm::vec3& rotateVectorAroundAxis(const glm::vec3& vec, float angle, const glm::vec3& axis)
+static glm::vec3 rotateVectorAroundAxis(const glm::vec3& vec, float angle, const glm::vec3& axis)
 {
 	float c = cos(glm::radians(angle));
 	float s = sin(glm::radians(angle));

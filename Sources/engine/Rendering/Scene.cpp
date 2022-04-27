@@ -286,6 +286,7 @@ namespace Scene
 				const tinygltf::BufferView& posView = model.bufferViews[posAccessor.bufferView];
 				const tinygltf::Buffer& posBuffer = model.buffers[posView.buffer];
 
+				const uint32_t vertexCount = static_cast<uint32_t>(posAccessor.count);
 				const float* bufferPos = reinterpret_cast<const float*>(&posBuffer.data[posView.byteOffset + posAccessor.byteOffset]);
 				const int posByteStride = posAccessor.ByteStride(posView) ? (posAccessor.ByteStride(posView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC3);
 				glm::vec3 posMin = glm::vec3(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]);
@@ -307,7 +308,7 @@ namespace Scene
 
 
 				std::unique_ptr<gl::VertexBuffer> vertex_buffer = std::make_unique<gl::VertexBuffer>();
-				std::unique_ptr<gl::IndexBuffer> index_buffer = std::make_unique<gl::IndexBuffer>();;
+				std::unique_ptr<gl::IndexBuffer> index_buffer = std::make_unique<gl::IndexBuffer>();
 
 				for (size_t v = 0; v < posAccessor.count; v++) 
 				{
@@ -315,14 +316,16 @@ namespace Scene
 					vert.pos = glm::vec4(glm::make_vec3(&bufferPos[v * posByteStride]), 1.0f);
 					vert.normal = glm::normalize(glm::vec3(bufferNorm ? glm::make_vec3(&bufferNorm[v * normByteStride]) : glm::vec3(0.0f)));
 					vert.uv0 = bufferTexCoord ? glm::make_vec2(&bufferTexCoord[v * texCoordByteStride]) : glm::vec3(0.0f);
-					int a = 0;
-					//vert.uv0 = bufferTexCoordSet0 ? glm::make_vec2(&bufferTexCoordSet0[v * uv0ByteStride]) : glm::vec3(0.0f);
 
 					vertexBuffer.push_back(vert);
 				}
 
-				vertex_buffer->Data(vertexBuffer.size(), vertexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
-
+				vertex_buffer->Data(vertexBuffer.size() * sizeof(Vertex), vertexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
+				vertex_buffer->AttributesPattern({ 
+						gl::VertexBuffer::AttribType::POSITION,
+						gl::VertexBuffer::AttribType::NORMAL,
+						gl::VertexBuffer::AttribType::UV_0, 
+					});
 
 				if (primitive.indices > -1)
 				{
@@ -330,202 +333,53 @@ namespace Scene
 					const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
 					const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
 
-					const float* bufferIndex = reinterpret_cast<const float*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-
-					//index_buffer->Data(accessor.count, )
-				}
-			}
-			
-			//Mesh* newMesh = new Mesh(newNode->matrix);
-			for (size_t j = 0; j < mesh.primitives.size(); j++) 
-			{
-				const tinygltf::Primitive& primitive = mesh.primitives[j];
-				uint32_t indexStart = static_cast<uint32_t>(indexBuffer.size());
-				uint32_t vertexStart = static_cast<uint32_t>(vertexBuffer.size());
-				uint32_t indexCount = 0;
-				uint32_t vertexCount = 0;
-				glm::vec3 posMin{};
-				glm::vec3 posMax{};
-				bool hasSkin = false;
-				bool hasIndices = primitive.indices > -1;
-
-				std::unique_ptr<gl::VertexBuffer> vertex_buffer;
-				std::unique_ptr<gl::IndexBuffer> index_buffer;
-				//std::unique_ptr<gl::VertexBuffer> normals_buffer;
-				//std::unique_ptr<gl::VertexBuffer> texture_coord_buffer;
-
-				// Vertices
-				{
-					const float* bufferPos = nullptr;
-					const float* bufferNormals = nullptr;
-					const float* bufferTexCoordSet0 = nullptr;
-					const float* bufferTexCoordSet1 = nullptr;
-					const void* bufferJoints = nullptr;
-					const float* bufferWeights = nullptr;
-
-					int posByteStride;
-					int normByteStride;
-					int uv0ByteStride;
-					int uv1ByteStride;
-					int jointByteStride;
-					int weightByteStride;
-
-					int jointComponentType;
-
-					// Position attribute is required
-					assert(primitive.attributes.find("POSITION") != primitive.attributes.end());
-
-					const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
-					const tinygltf::BufferView& posView = model.bufferViews[posAccessor.bufferView];
-					bufferPos = reinterpret_cast<const float*>(&(model.buffers[posView.buffer].data[posAccessor.byteOffset + posView.byteOffset]));
-					posMin = glm::vec3(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]);
-					posMax = glm::vec3(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]);
-					vertexCount = static_cast<uint32_t>(posAccessor.count);
-					posByteStride = posAccessor.ByteStride(posView) ? (posAccessor.ByteStride(posView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC3);
-
-					//position_buffer = std::make_unique<gl::VertexBuffer>();
-					//position_buffer->Data(posView.byteLength, bufferPos, gl::Buffer::UsageMode::STATIC_DRAW);
-					//position_buffer->AttributesPattern({ gl::VertexBuffer::AttribType::POSITION });
-
-					if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
-						const tinygltf::Accessor& normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
-						const tinygltf::BufferView& normView = model.bufferViews[normAccessor.bufferView];
-						bufferNormals = reinterpret_cast<const float*>(&(model.buffers[normView.buffer].data[normAccessor.byteOffset + normView.byteOffset]));
-						normByteStride = normAccessor.ByteStride(normView) ? (normAccessor.ByteStride(normView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC3);
-
-						//normals_buffer = std::make_unique<gl::VertexBuffer>();
-						//normals_buffer->Data(normView.byteLength, bufferNormals, gl::Buffer::UsageMode::STATIC_DRAW);
-						//normals_buffer->AttributesPattern({ gl::VertexBuffer::AttribType::NORMAL });
-					}
-
-					if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
-						const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
-						const tinygltf::BufferView& uvView = model.bufferViews[uvAccessor.bufferView];
-						bufferTexCoordSet0 = reinterpret_cast<const float*>(&(model.buffers[uvView.buffer].data[uvAccessor.byteOffset + uvView.byteOffset]));
-						uv0ByteStride = uvAccessor.ByteStride(uvView) ? (uvAccessor.ByteStride(uvView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC2);
-
-						//texture_coord_buffer = std::make_unique<gl::VertexBuffer>();
-						//texture_coord_buffer->Data(uvView.byteLength, bufferTexCoordSet0, gl::Buffer::UsageMode::STATIC_DRAW);
-						//texture_coord_buffer->AttributesPattern({ gl::VertexBuffer::AttribType::UV_0 });
-					}
-					if (primitive.attributes.find("TEXCOORD_1") != primitive.attributes.end()) {
-						const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_1")->second];
-						const tinygltf::BufferView& uvView = model.bufferViews[uvAccessor.bufferView];
-						bufferTexCoordSet1 = reinterpret_cast<const float*>(&(model.buffers[uvView.buffer].data[uvAccessor.byteOffset + uvView.byteOffset]));
-						uv1ByteStride = uvAccessor.ByteStride(uvView) ? (uvAccessor.ByteStride(uvView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC2);
-					}
-
-					// Skinning
-					// Joints
-					if (primitive.attributes.find("JOINTS_0") != primitive.attributes.end()) {
-						const tinygltf::Accessor& jointAccessor = model.accessors[primitive.attributes.find("JOINTS_0")->second];
-						const tinygltf::BufferView& jointView = model.bufferViews[jointAccessor.bufferView];
-						bufferJoints = &(model.buffers[jointView.buffer].data[jointAccessor.byteOffset + jointView.byteOffset]);
-						jointComponentType = jointAccessor.componentType;
-						jointByteStride = jointAccessor.ByteStride(jointView) ? (jointAccessor.ByteStride(jointView) / tinygltf::GetComponentSizeInBytes(jointComponentType)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC4);
-					}
-
-					if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) {
-						const tinygltf::Accessor& weightAccessor = model.accessors[primitive.attributes.find("WEIGHTS_0")->second];
-						const tinygltf::BufferView& weightView = model.bufferViews[weightAccessor.bufferView];
-						bufferWeights = reinterpret_cast<const float*>(&(model.buffers[weightView.buffer].data[weightAccessor.byteOffset + weightView.byteOffset]));
-						weightByteStride = weightAccessor.ByteStride(weightView) ? (weightAccessor.ByteStride(weightView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC4);
-					}
-
-					hasSkin = (bufferJoints && bufferWeights);
-
-					for (size_t v = 0; v < posAccessor.count; v++) {
-						Vertex vert{};
-						vert.pos = glm::vec4(glm::make_vec3(&bufferPos[v * posByteStride]), 1.0f);
-						vert.normal = glm::normalize(glm::vec3(bufferNormals ? glm::make_vec3(&bufferNormals[v * normByteStride]) : glm::vec3(0.0f)));
-						vert.uv0 = bufferTexCoordSet0 ? glm::make_vec2(&bufferTexCoordSet0[v * uv0ByteStride]) : glm::vec3(0.0f);
-						//vert.uv1 = bufferTexCoordSet1 ? glm::make_vec2(&bufferTexCoordSet1[v * uv1ByteStride]) : glm::vec3(0.0f);
-
-						/*if (hasSkin)
-						{
-							switch (jointComponentType) {
-							case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
-								const uint16_t* buf = static_cast<const uint16_t*>(bufferJoints);
-								vert.joint0 = glm::vec4(glm::make_vec4(&buf[v * jointByteStride]));
-								break;
-							}
-							case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
-								const uint8_t* buf = static_cast<const uint8_t*>(bufferJoints);
-								vert.joint0 = glm::vec4(glm::make_vec4(&buf[v * jointByteStride]));
-								break;
-							}
-							default:
-								// Not supported by spec
-								std::cerr << "Joint component type " << jointComponentType << " not supported!" << std::endl;
-								break;
-							}
-						}
-						else {
-							vert.joint0 = glm::vec4(0.0f);
-						}
-						vert.weight0 = hasSkin ? glm::make_vec4(&bufferWeights[v * weightByteStride]) : glm::vec4(0.0f);
-						// Fix for all zero weights
-						if (glm::length(vert.weight0) == 0.0f) {
-							vert.weight0 = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-						}*/
-						vertexBuffer.push_back(vert);
-					}
-
-
-					vertex_buffer = std::make_unique<gl::VertexBuffer>();
-					vertex_buffer->Data(sizeof(vertexBuffer), vertexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
-					vertex_buffer->AttributesPattern({ 
-						gl::VertexBuffer::AttribType::POSITION, 
-						gl::VertexBuffer::AttribType::NORMAL, 
-						gl::VertexBuffer::AttribType::UV_0,
-						gl::VertexBuffer::AttribType::UV_1,
-						gl::VertexBuffer::AttribType::JOINT,
-						gl::VertexBuffer::AttribType::WEIGHT
-					});
-				}
-				// Indices
-				if (hasIndices)
-				{
-					const tinygltf::Accessor& accessor = model.accessors[primitive.indices > -1 ? primitive.indices : 0];
-					const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
-					const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
-
-					indexCount = static_cast<uint32_t>(accessor.count);
+					const uint32_t indexCount = static_cast<uint32_t>(accessor.count);
 					const void* dataPtr = &(buffer.data[accessor.byteOffset + bufferView.byteOffset]);
 
-
-
-					switch (accessor.componentType) {
-					case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
-						const uint32_t* buf = static_cast<const uint32_t*>(dataPtr);
-						for (size_t index = 0; index < accessor.count; index++) {
-							indexBuffer.push_back(buf[index] + vertexStart);
+					switch (accessor.componentType) 
+					{
+						case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: 
+						{
+							std::vector<uint32_t> indexBuffer;
+							const uint32_t* buf = static_cast<const uint32_t*>(dataPtr);
+							for (size_t index = 0; index < accessor.count; index++) 
+							{
+								indexBuffer.push_back((uint32_t)(*(buf + index)));
+							}
+							index_buffer->Data(sizeof(uint32_t) * indexBuffer.size(), indexBuffer.data(), DataType::UNSIGNED_INT, gl::Buffer::UsageMode::STATIC_DRAW);
+							break;
 						}
-						break;
-					}
-					case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
-						const uint16_t* buf = static_cast<const uint16_t*>(dataPtr);
-						for (size_t index = 0; index < accessor.count; index++) {
-							indexBuffer.push_back(buf[index] + vertexStart);
+						case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: 
+						{
+							std::vector<uint16_t> indexBuffer;
+							const uint16_t* buf = static_cast<const uint16_t*>(dataPtr);
+							for (size_t index = 0; index < accessor.count; index++) 
+							{
+								indexBuffer.push_back((uint16_t)(*(buf + index)));
+							}
+							index_buffer->Data(sizeof(uint16_t) * indexBuffer.size(), indexBuffer.data(), DataType::UNSIGNED_SHORT, gl::Buffer::UsageMode::STATIC_DRAW);
+							break;
 						}
-						break;
-					}
-					case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
-						const uint8_t* buf = static_cast<const uint8_t*>(dataPtr);
-						for (size_t index = 0; index < accessor.count; index++) {
-							indexBuffer.push_back(buf[index] + vertexStart);
+						case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: 
+						{
+							std::vector<uint8_t> indexBuffer;
+							const uint8_t* buf = static_cast<const uint8_t*>(dataPtr);
+							for (size_t index = 0; index < accessor.count; index++) 
+							{
+								indexBuffer.push_back((uint8_t)(*(buf + index)));
+							}
+							index_buffer->Data(sizeof(uint8_t)* indexBuffer.size(), indexBuffer.data(), DataType::UNSIGNED_BYTE, gl::Buffer::UsageMode::STATIC_DRAW);
+							break;
 						}
-						break;
+						default:
+							//std::cerr << "Index component type " << accessor.componentType << " not supported!" << std::endl;
+							assert(false && "Index component type %d not supported!", accessor.componentType);
+							return;
 					}
-					default:
-						std::cerr << "Index component type " << accessor.componentType << " not supported!" << std::endl;
-						return;
-					}
-
-					index_buffer = std::make_unique<gl::IndexBuffer>();
-					index_buffer->Data(sizeof(indexBuffer), indexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
-					//vertexCount = indexBuffer.size();
+					index_buffer->SetIndexCount(accessor.count);
 				}
+
+
 				std::unique_ptr<gl::VertexArray> vao = std::make_unique<gl::VertexArray>();
 				vao->LinkVBO(nullptr, vertex_buffer.get(), vertexCount);
 				vao->LinkEBO(index_buffer.get());
@@ -535,8 +389,6 @@ namespace Scene
 				newPrimitive->setBoundingBox(posMin, posMax);
 				newMesh->primitives.push_back(newPrimitive);
 			}
-
-
 
 			for (auto p : newMesh->primitives) {
 				if (p->bb.valid && !newMesh->bb.valid) {

@@ -54,19 +54,23 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	glfwMakeContextCurrent(mGLFWWindow);
 	glfwSwapInterval(1);
 
+#ifndef __EMSCRIPTEN__
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		fprintf(stderr, "Failed to initialize GLAD!\n");
 		exit(1);
 	}
+#endif
 
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, NULL);
 
 	mGUI.Init(glsl_version);
 
+#ifndef __EMSCRIPTEN__
 	if (glfwRawMouseMotionSupported())
 		glfwSetInputMode(mGLFWWindow, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+#endif
 
 	glfwSetKeyCallback(mGLFWWindow, EventHandler::KeyCallback);
 	glfwSetCursorPosCallback(mGLFWWindow, EventHandler::MouseMoveCallback);

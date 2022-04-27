@@ -15,8 +15,9 @@ namespace gl
 		Buffer::Bind(Buffer::Type::ELEMENT_ARRAY);
 	}
 
-	void IndexBuffer::Data(const unsigned int& size, const void* data, UsageMode accessFreq)
+	void IndexBuffer::Data(const unsigned int& size, const void* data, DataType type, UsageMode accessFreq)
 	{
+		mDataType = type;
 		this->Bind();
 		Buffer::Data(size, data, accessFreq);
 		this->UnBind();

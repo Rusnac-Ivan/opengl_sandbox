@@ -10,7 +10,13 @@
 
 //https://github.com/KhronosGroup/glTF
 
-#define GLSL(str) (const char *)"#version 330\n" #str
+
+#ifdef __EMSCRIPTEN__
+    #define GLSL(str) (const char *)"#version 300 es\n" #str
+#define GL_ES
+#else
+    #define GLSL(str) (const char *)"#version 330 core\n" #str
+#endif
 
 float vertices[] = {
     -0.3f, -0.3f, -0.3f, 0.0f, 0.0f, -1.0f,
@@ -96,12 +102,13 @@ void View::OnInitialize()
     //mKnight->AddVBO(std::vector<gl::AttribType>({gl::AttribType::POSITION, gl::AttribType::NORMAL}), __knight_vert_count, sizeof(__knight_vert), __knight_vert);
 
     const char *vertShader = GLSL(
+#ifdef GL_ES
+        \nprecision highp int; \n
+        precision highp float; \n
+#endif \n
         layout(location = 0) in vec3 aPos;
         layout(location = 1) in vec3 aNorm;
         layout(location = 2) in vec2 aUV0;
-        layout(location = 3) in vec2 aUV1;
-        layout(location = 4) in vec4 aJoints;
-        layout(location = 5) in vec4 aWeights;
 
         float rand(float x) {
             return fract(sin(x) * 100000.0);
@@ -125,6 +132,10 @@ void View::OnInitialize()
 
     int vertShSize = strlen(vertShader);
     const char *fragShader = GLSL(
+#ifdef GL_ES
+        \nprecision highp int; \n
+        precision highp float; \n
+#endif \n
         out vec4 FragColor;
 
         uniform sampler2D uBaseColor;

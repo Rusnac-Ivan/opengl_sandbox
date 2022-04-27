@@ -1,5 +1,5 @@
 #include "Program.h"
-#include <glad/glad.h>
+#include <Core/Platform.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <cstdlib>
