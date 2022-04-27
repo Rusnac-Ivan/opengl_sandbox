@@ -3,7 +3,6 @@
 #include <GLObjects/Shader.h>
 #include <Pieces/bishop.inl>
 #include <Pieces/knight.inl>
-#include <ofbx.h>
 #include "Scene.h"
 #include <vector>
 #include <fstream>
@@ -203,7 +202,7 @@ void View::OnInitialize()
     mProgram->StopUsing();
 
 
-    mModel.loadFromFile("D:/Libraries/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf");
+    //mModel.loadFromFile("D:/Libraries/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf");
 }
 
 void View::OnUpdate()
@@ -224,11 +223,11 @@ void View::OnUpdate()
 
     gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
 
-    mProgram->SetMatrix4(mProgram->Uniform("model"), model1);
+    //mProgram->SetMatrix4(mProgram->Uniform("model"), model1);
     //mBishopVAO->Draw(gl::Primitive::TRIANGLES);
 
-    mModel.draw();
-    mProgram->SetMatrix4(mProgram->Uniform("model"), model2);
+    //mModel.draw(mProgram.get());
+    //mProgram->SetMatrix4(mProgram->Uniform("model"), model2);
     //mKnightVAO->Draw(gl::Primitive::TRIANGLES);
 
     mProgram->StopUsing();

@@ -49,6 +49,7 @@ private:
 	GLFWwindow *mGLFWWindow;
 	GUI mGUI;
 
+
 };
 
 #endif

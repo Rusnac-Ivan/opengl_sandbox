@@ -91,19 +91,21 @@ ExternalProject_Add(glm
     BUILD_ALWAYS            FALSE
 )
 
-ExternalProject_Add(openfbx
-    PREFIX                  ${LIBRARIES_PREFIX}/openfbx
-    DEPENDS                 imgui
-    GIT_REPOSITORY          https://github.com/nem0/OpenFBX.git
-    GIT_TAG                 master
-    UPDATE_DISCONNECTED     TRUE
-    UPDATE_COMMAND          ""
-    CONFIGURE_COMMAND       ""
-    BUILD_COMMAND           ""
-    INSTALL_COMMAND         ""
-)
-ExternalProject_Get_property(openfbx SOURCE_DIR)
-set(OPENFBX_SOURCE_DIR ${SOURCE_DIR})
+if(NOT DEFINED EMSCRIPTEN)
+    ExternalProject_Add(openfbx
+        PREFIX                  ${LIBRARIES_PREFIX}/openfbx
+        DEPENDS                 imgui
+        GIT_REPOSITORY          https://github.com/nem0/OpenFBX.git
+        GIT_TAG                 master
+        UPDATE_DISCONNECTED     TRUE
+        UPDATE_COMMAND          ""
+        CONFIGURE_COMMAND       ""
+        BUILD_COMMAND           ""
+        INSTALL_COMMAND         ""
+    )
+    ExternalProject_Get_property(openfbx SOURCE_DIR)
+    set(OPENFBX_SOURCE_DIR ${SOURCE_DIR})
+endif()
 
 
 ExternalProject_Add(tinygltf
@@ -122,20 +124,39 @@ set(TINYGLTF_SOURCE_DIR ${SOURCE_DIR})
 
 set(INSTALLATION_PREFIXES_LIST "${LIBRARIES_INSTALL_PREFIX}/glm")
 
-ExternalProject_Add(opengl_sandbox
-    PREFIX              ${LIBRARIES_PREFIX}/opengl_sandbox
-    DEPENDS             glm imgui
-    SOURCE_DIR          ${PROJECT_SOURCE_DIR}/../
-    CMAKE_ARGS          
-    CMAKE_CACHE_ARGS    -DGLFW3_ROOT:PATH=${LIBRARIES_INSTALL_PREFIX}/glfw
-                        -DIMGUI_PATH:PATH=${IMGUI_SOURCE_DIR}
-                        -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
-                        -DCMAKE_TOOLCHAIN_ARGS:STRING=${CMAKE_TOOLCHAIN_ARGS}
-                        -DOPENFBX_PATH:PATH=${OPENFBX_SOURCE_DIR}/src
-                        -Dglm_DIR:PATH=${LIBRARIES_INSTALL_PREFIX}/glm/lib/cmake/glm
-                        -DCMAKE_PREFIX_PATH:STRING=${INSTALLATION_PREFIXES_LIST}
-                        -DTINYGLTF_PATH:PATH=${TINYGLTF_SOURCE_DIR}
-                        
-    BUILD_ALWAYS        TRUE
-    INSTALL_COMMAND     ""
-)
+if(NOT DEFINED EMSCRIPTEN)
+    ExternalProject_Add(opengl_sandbox
+        PREFIX              ${LIBRARIES_PREFIX}/opengl_sandbox
+        DEPENDS             glm imgui
+        SOURCE_DIR          ${PROJECT_SOURCE_DIR}/../
+        CMAKE_ARGS          
+        CMAKE_CACHE_ARGS    -DGLFW3_ROOT:PATH=${LIBRARIES_INSTALL_PREFIX}/glfw
+                            -DIMGUI_PATH:PATH=${IMGUI_SOURCE_DIR}
+                            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
+                            -DCMAKE_TOOLCHAIN_ARGS:STRING=${CMAKE_TOOLCHAIN_ARGS}
+                            -DOPENFBX_PATH:PATH=${OPENFBX_SOURCE_DIR}/src
+                            -Dglm_DIR:PATH=${LIBRARIES_INSTALL_PREFIX}/glm/lib/cmake/glm
+                            -DCMAKE_PREFIX_PATH:STRING=${INSTALLATION_PREFIXES_LIST}
+                            -DTINYGLTF_PATH:PATH=${TINYGLTF_SOURCE_DIR}
+                            
+        BUILD_ALWAYS        TRUE
+        INSTALL_COMMAND     ""
+    )
+else()
+    ExternalProject_Add(opengl_sandbox
+        PREFIX              ${LIBRARIES_PREFIX}/opengl_sandbox
+        DEPENDS             glm imgui
+        SOURCE_DIR          ${PROJECT_SOURCE_DIR}/../
+        CMAKE_ARGS          
+        CMAKE_CACHE_ARGS    -DGLFW3_ROOT:PATH=${LIBRARIES_INSTALL_PREFIX}/glfw
+                            -DIMGUI_PATH:PATH=${IMGUI_SOURCE_DIR}
+                            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
+                            -DCMAKE_TOOLCHAIN_ARGS:STRING=${CMAKE_TOOLCHAIN_ARGS}
+                            -Dglm_DIR:PATH=${LIBRARIES_INSTALL_PREFIX}/glm/lib/cmake/glm
+                            -DCMAKE_PREFIX_PATH:STRING=${INSTALLATION_PREFIXES_LIST}
+                            -DTINYGLTF_PATH:PATH=${TINYGLTF_SOURCE_DIR}
+                            
+        BUILD_ALWAYS        TRUE
+        INSTALL_COMMAND     ""
+    )
+endif()

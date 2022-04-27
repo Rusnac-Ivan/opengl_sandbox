@@ -4,6 +4,7 @@
 #include "EventHandler.h"
 #include "Window.h"
 #include <Rendering/View.h>
+#include <Core/Platform.h>
 
 class Application
 {
@@ -12,12 +13,18 @@ private:
 	{
 		mWindow.Create(width, height, windowName);
 
+
+
 		//mView = new View;
 		static View view;
 		mView = &view;
 		mView->OnCreate(width, height);
 		EventHandler::SetListener(mView);
+#ifdef __EMSCRIPTEN__
+		emscripten_set_main_loop(&(this->MainLoop), 0, true);
+#else
 		MainLoop();
+#endif
 	}
 	Application(Application &app) {}
 	Application &operator=(Application &app) { return *this; }

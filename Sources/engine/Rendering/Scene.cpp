@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <map>
+#include <glm/gtx/quaternion.hpp>
 
 
 namespace tinygltf
@@ -257,9 +258,20 @@ namespace Scene
 			scale = glm::make_vec3(node.scale.data());
 			newNode->scale = scale;
 		}
-		if (node.matrix.size() == 16) {
+		if (node.matrix.size() == 16) 
+		{
 			newNode->matrix = glm::make_mat4x4(node.matrix.data());
-		};
+		}
+		else
+		{
+			newNode->matrix = glm::scale(newNode->matrix, newNode->scale);
+			newNode->matrix = newNode->matrix * glm::toMat4(newNode->rotation);
+			newNode->matrix = glm::translate(newNode->matrix, newNode->translation);
+
+			//newNode->matrix = newNode->translation 
+		}
+
+
 
 		// Node with children
 		if (node.children.size() > 0) {
@@ -372,8 +384,8 @@ namespace Scene
 							break;
 						}
 						default:
-							//std::cerr << "Index component type " << accessor.componentType << " not supported!" << std::endl;
-							assert(false && "Index component type %d not supported!", accessor.componentType);
+							std::cerr << "Index component type " << accessor.componentType << " not supported!" << std::endl;
+							//assert(false && "Index component type %d not supported!", accessor.componentType);
 							return;
 					}
 					index_buffer->SetIndexCount(accessor.count);
@@ -625,25 +637,27 @@ namespace Scene
 	}
 
 
-	void Model::drawNode(Node* node)
+	void Model::drawNode(gl::Program* program, Node* node)
 	{
 		if (node->mesh) {
 			for (Primitive* primitive : node->mesh->primitives) 
 			{
+
 				primitive->material.baseColorTexture->Bind();
 				//vkCmdDrawIndexed(commandBuffer, primitive->indexCount, 1, primitive->firstIndex, 0, 0);
 				primitive->VAO->Draw(primitive->primitiveMode);
 			}
 		}
 		for (auto& child : node->children) {
-			drawNode(child);
+			drawNode(program, child);
 		}
 	}
 
-	void Model::draw()
+	void Model::draw(gl::Program* program)
 	{
 		for (auto& node : nodes) {
-			drawNode(node);
+			program->SetMatrix4(program->Uniform("model"), node->getMatrix());
+			drawNode(program, node);
 		}
 	}
 

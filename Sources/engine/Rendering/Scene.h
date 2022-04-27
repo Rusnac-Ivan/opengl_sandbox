@@ -9,6 +9,7 @@
 #include <GLObjects/VertexBuffer.h>
 #include <GLObjects/IndexBuffer.h>
 #include <GLObjects/VertexArray.h>
+#include <GLObjects/Program.h>
 
 namespace Scene
 {
@@ -31,6 +32,12 @@ namespace Scene
 		Texture() {}
 
 		Texture(Texture& other) : texture(std::move(other.texture)) {}
+		Texture(Texture&& other) : texture(std::move(other.texture)) {}
+		Texture& operator=(Texture& other)
+		{
+			texture = std::move(other.texture);
+		}
+
 		//Texture(const Texture& other) = delete;
 		// Load a texture from a glTF image (stored as vector of chars loaded via stb_image) and generate a full mip chaing for it
 		void fromglTfImage(tinygltf::Image& gltfimage, gl::Texture2D::Sampler sampler);
@@ -173,8 +180,8 @@ namespace Scene
 		void loadMaterials(tinygltf::Model& gltfModel);
 		//void loadAnimations(tinygltf::Model& gltfModel);
 		void loadFromFile(std::string filename, float scale = 1.0f);
-		void drawNode(Node* node);
-		void draw();
+		void drawNode(gl::Program* program, Node* node);
+		void draw(gl::Program* program);
 		void calculateBoundingBox(Node* node, Node* parent);
 		void getSceneDimensions();
 		//void updateAnimation(uint32_t index, float time);
