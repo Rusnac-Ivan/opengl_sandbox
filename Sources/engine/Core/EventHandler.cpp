@@ -81,4 +81,10 @@ void EventHandler::MouseScrollCallback(GLFWwindow* window, double xoffset, doubl
 void EventHandler::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	mView->OnResize(width, height);
+	printf("FramebufferSizeCallback %dx%d\n", width, height);
+}
+
+void EventHandler::WindowSizeCallback(GLFWwindow* window, int width, int height)
+{
+	printf("WindowSizeCallback %dx%d\n", width, height);
 }

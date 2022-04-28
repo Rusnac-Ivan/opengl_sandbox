@@ -5,6 +5,7 @@
     #include <emscripten.h>
     #define GL_GLEXT_PROTOTYPES
     #define EGL_EGLEXT_PROTOTYPES
+    #define IMGUI_IMPL_OPENGL_ES2
 #else
     #include <glad/glad.h>
 #endif
@@ -12,7 +13,7 @@
 #include <GLFW/glfw3.h>
 #include <cassert>
 
-extern enum struct DataType
+enum struct DataType
 {
 	BYTE = GL_BYTE,
 	UNSIGNED_BYTE = GL_UNSIGNED_BYTE,

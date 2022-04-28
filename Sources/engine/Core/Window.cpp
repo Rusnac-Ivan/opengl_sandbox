@@ -22,6 +22,8 @@ MessageCallback(GLenum source,
 
 void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 {
+	
+
 	glfwSetErrorCallback(glfw_error_callback);
 
 	mWidth = width;
@@ -34,15 +36,41 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	}
 
 
-	const char* glsl_version = "#version 460";
+	std::string glsl_version;
+#ifdef __EMSCRIPTEN__
+	glsl_version = "#version 300 es";
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#else
+	glsl_version = "#version 400";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif
+
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_SAMPLES, 8);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
+	
+#ifdef __EMSCRIPTEN__
+	//GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	//const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	//assert(false);
+	EM_JS(int, canvas_get_width, (), {
+			return yourCanvasElement.width;
+	});
+
+	EM_JS(int, canvas_get_height, (), {
+		return yourCanvasElement.height;
+	});
+	//glfwSetWindowMonitor(mGLFWWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+	mGLFWWindow = glfwCreateWindow(canvas_get_width(), canvas_get_height(), windowName, NULL, NULL);
+	//mGLFWWindow = glfwCreateWindow(mWidth, mHeight, windowName, nullptr, nullptr);
+
+#else
 	mGLFWWindow = glfwCreateWindow(mWidth, mHeight, windowName, nullptr, nullptr);
+#endif
 
 	if (mGLFWWindow == nullptr)
 	{
@@ -52,7 +80,7 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 
 
 	glfwMakeContextCurrent(mGLFWWindow);
-	glfwSwapInterval(1);
+	//glfwSwapInterval(1);
 
 #ifndef __EMSCRIPTEN__
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -65,7 +93,7 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, NULL);
 
-	mGUI.Init(glsl_version);
+	mGUI.Init(glsl_version.c_str());
 
 #ifndef __EMSCRIPTEN__
 	if (glfwRawMouseMotionSupported())
@@ -77,6 +105,7 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	glfwSetMouseButtonCallback(mGLFWWindow, EventHandler::MouseButtonCallback);
 	glfwSetScrollCallback(mGLFWWindow, EventHandler::MouseScrollCallback);
 	glfwSetFramebufferSizeCallback(mGLFWWindow, EventHandler::FramebufferSizeCallback);
+	glfwSetWindowSizeCallback(mGLFWWindow, EventHandler::WindowSizeCallback);
 }
 
 void Window::PollEvents()

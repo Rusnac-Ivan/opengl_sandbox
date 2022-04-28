@@ -4,6 +4,11 @@
 #include "Platform.h"
 #include "EventHandler.h"
 
+#ifdef __EMSCRIPTEN__
+//#define IMGUI_IMPL_OPENGL_ES3
+#else
+#endif
+
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 

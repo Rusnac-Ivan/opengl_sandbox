@@ -21,9 +21,16 @@ private:
 		mView->OnCreate(width, height);
 		EventHandler::SetListener(mView);
 #ifdef __EMSCRIPTEN__
-		emscripten_set_main_loop(&(this->MainLoop), 0, true);
+		mView->OnInitialize();
+		emscripten_set_main_loop_arg(Application::MainLoop, (void*)this, 0, 1);
+		mView->OnFinalize();
 #else
-		MainLoop();
+		mView->OnInitialize();
+		while (mWindow.WindowIsOpen())
+		{
+			MainLoop(this);
+		}
+		mView->OnFinalize();
 #endif
 	}
 	Application(Application &app) {}
@@ -34,23 +41,7 @@ private:
 		//delete mView;
 	}
 
-	void MainLoop()
-	{
-		mView->OnInitialize();
-		while (mWindow.WindowIsOpen())
-		{
-			
-
-			mView->OnUpdate();
-
-			mWindow.RenderGUI();
-
-
-			mWindow.SwapBuffers();
-			mWindow.PollEvents();
-		}
-		mView->OnFinalize();
-	}
+	static void MainLoop(void* ptr);
 
 public:
 	static Application &RunApplication(uint32_t width, uint32_t height, const char *windowName)

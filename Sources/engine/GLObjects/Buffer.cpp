@@ -48,11 +48,11 @@ namespace gl
 
 	void Buffer::Generate()
 	{
-		if (mID != NULL)
+		if (mID != 0)
 			Delete();
 
 		GL(GenBuffers(1, &mID));
-		assert(mID != NULL && "Failed to generate buffer!");
+		assert(mID != 0 && "Failed to generate buffer!");
 	}
 	void Buffer::Delete()
 	{

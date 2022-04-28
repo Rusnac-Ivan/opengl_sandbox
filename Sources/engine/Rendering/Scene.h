@@ -36,6 +36,7 @@ namespace Scene
 		Texture& operator=(Texture& other)
 		{
 			texture = std::move(other.texture);
+			return *this;
 		}
 
 		//Texture(const Texture& other) = delete;

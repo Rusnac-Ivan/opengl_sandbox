@@ -23,6 +23,7 @@ public:
 	static void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 	static void MouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 	static void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
+	static void WindowSizeCallback(GLFWwindow* window, int width, int height);
 
 private:
 };

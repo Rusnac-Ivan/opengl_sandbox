@@ -9,7 +9,7 @@ Camera::~Camera(){}
 
 void Camera::Init(const glm::vec2& winSize, const glm::vec3& pos, const glm::vec3& look, const glm::vec3& up)
 {	
-	mCurrentMove = NULL;
+	mCurrentMove = 0;
 	mFov = 60.f;
 	mNear = 0.01f;
 	mFar = 10.f;
