@@ -57,16 +57,16 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	//GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	//const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 	//assert(false);
-	EM_JS(int, canvas_get_width, (), {
-			return yourCanvasElement.width;
-	});
-
-	EM_JS(int, canvas_get_height, (), {
-		return yourCanvasElement.height;
-	});
 	//glfwSetWindowMonitor(mGLFWWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-	mGLFWWindow = glfwCreateWindow(canvas_get_width(), canvas_get_height(), windowName, NULL, NULL);
-	//mGLFWWindow = glfwCreateWindow(mWidth, mHeight, windowName, nullptr, nullptr);
+
+	//mGLFWWindow = glfwCreateWindow(mode->width, mode->height, windowName, monitor, NULL);
+	int c_width, c_height, is_fullscreen;
+
+	emscripten_get_canvas_size(&c_width, &c_height, &is_fullscreen);
+
+	printf("emscripten_get_canvas_size %dx%d, is_fullscreen: %d\n", c_width, c_height, is_fullscreen);
+
+	mGLFWWindow = glfwCreateWindow(c_width, c_height, windowName, nullptr, nullptr);
 
 #else
 	mGLFWWindow = glfwCreateWindow(mWidth, mHeight, windowName, nullptr, nullptr);

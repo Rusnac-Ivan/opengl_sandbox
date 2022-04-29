@@ -2,6 +2,11 @@
 #include <Rendering/View.h>
 #include <imgui.h>
 
+#ifdef __EMSCRIPTEN__
+	#include <emscripten/val.h>
+#endif
+
+
 View* EventHandler::mView = nullptr;
 
 void EventHandler::SetListener(View* view) 
@@ -20,6 +25,8 @@ void EventHandler::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 		mView->OnKeyRepeat(key);
 	if (action == GLFW_RELEASE)
 		mView->OnKeyRelease(key);
+
+	printf("KeyCallback\n");
 }
 
 void EventHandler::MouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
@@ -52,6 +59,7 @@ void EventHandler::MouseButtonCallback(GLFWwindow* window, int button, int actio
 		{
 			mView->OnMouseMiddleDown(xpos, ypos);
 		}
+		printf("GLFW_PRESS\n");
 	}
 	else if (action == GLFW_RELEASE)
 	{
@@ -67,6 +75,7 @@ void EventHandler::MouseButtonCallback(GLFWwindow* window, int button, int actio
 		{
 			mView->OnMouseMiddleUp(xpos, ypos);
 		}
+		printf("GLFW_RELEASE\n");
 	}
 }
 
@@ -76,15 +85,28 @@ void EventHandler::MouseScrollCallback(GLFWwindow* window, double xoffset, doubl
 		return;
 
 	mView->OnMouseWhell(yoffset);
+	printf("MouseScrollCallback\n");
 }
 
 void EventHandler::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	mView->OnResize(width, height);
-	printf("FramebufferSizeCallback %dx%d\n", width, height);
+	
+	std::string msg("FramebufferSizeCallback: " + std::to_string(width) + "x" + std::to_string(height));
+#ifdef __EMSCRIPTEN__
+	
+	emscripten::val::global("console").call<void>("log", msg);
+#else
+	printf("%s\n", msg.c_str());
+#endif
 }
 
 void EventHandler::WindowSizeCallback(GLFWwindow* window, int width, int height)
 {
-	printf("WindowSizeCallback %dx%d\n", width, height);
+	std::string msg("WindowSizeCallback: " + std::to_string(width) + "x" + std::to_string(height));
+#ifdef __EMSCRIPTEN__
+	emscripten::val::global("console").call<void>("log", msg);
+#else
+	printf("%s\n", msg.c_str());
+#endif
 }
