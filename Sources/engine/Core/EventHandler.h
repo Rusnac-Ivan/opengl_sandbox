@@ -25,6 +25,10 @@ public:
 	static void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
 	static void WindowSizeCallback(GLFWwindow* window, int width, int height);
 
+#ifdef __EMSCRIPTEN__
+	static EM_BOOL emscripten_window_resized_callback(int eventType, const void* reserved, void* userData);
+#endif
+
 private:
 };
 

@@ -50,6 +50,9 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_SAMPLES, 8);
+
+	glfwWindowHint(GLFW_RESIZABLE, 1);
+	glfwWindowHint(GLFW_MAXIMIZED, 1);
 	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	
@@ -67,7 +70,19 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	printf("emscripten_get_canvas_size %dx%d, is_fullscreen: %d\n", c_width, c_height, is_fullscreen);
 
 	mGLFWWindow = glfwCreateWindow(c_width, c_height, windowName, nullptr, nullptr);
+	mWidth = c_width;
+	mHeight = c_height;
 
+	if (true) {
+		EmscriptenFullscreenStrategy strategy;
+		strategy.scaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_STDDEF;
+		strategy.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_DEFAULT;
+		strategy.canvasResizedCallback = EventHandler::emscripten_window_resized_callback;
+		strategy.canvasResizedCallbackUserData = mGLFWWindow;   // pointer to user data
+		emscripten_enter_soft_fullscreen("canvas", &strategy);
+	}
+
+	printf("GLFWwindow*: %p\n", mGLFWWindow);
 #else
 	mGLFWWindow = glfwCreateWindow(mWidth, mHeight, windowName, nullptr, nullptr);
 #endif
@@ -106,12 +121,40 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	glfwSetScrollCallback(mGLFWWindow, EventHandler::MouseScrollCallback);
 	glfwSetFramebufferSizeCallback(mGLFWWindow, EventHandler::FramebufferSizeCallback);
 	glfwSetWindowSizeCallback(mGLFWWindow, EventHandler::WindowSizeCallback);
+#ifdef __EMSCRIPTEN__
+	//em_canvasresized_callback_func();
+	//EmscriptenFullscreenStrategy.canvasResizedCallback;
+	//emscripten_set_resize_callback(nullptr, nullptr, false, emscWindowSizeChanged);
+#endif
+
 }
 
 void Window::PollEvents()
 {
 	glfwPollEvents();
-	glfwGetFramebufferSize(mGLFWWindow, reinterpret_cast<int*>(&mWidth), reinterpret_cast<int*>(&mHeight));
+	//glfwGetFramebufferSize(mGLFWWindow, reinterpret_cast<int*>(&mWidth), reinterpret_cast<int*>(&mHeight));
+/*#ifdef __EMSCRIPTEN__
+	int c_width, c_height, is_fullscreen;
+
+	emscripten_get_canvas_size(&c_width, &c_height, &is_fullscreen);
+
+	bool is_canvas_size_change = false;
+	if (mWidth != c_width)
+	{
+		mWidth = c_width;
+		is_canvas_size_change = true;
+	}
+	if (mHeight != c_height)
+	{
+		mHeight = c_height;
+		is_canvas_size_change = true;
+	}
+
+	if (is_canvas_size_change)
+	{
+		EventHandler::WindowSizeCallback(mGLFWWindow, mWidth, mHeight);
+	}
+#endif*/
 }
 
 Window::~Window()

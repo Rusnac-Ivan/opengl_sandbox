@@ -3,6 +3,9 @@
 
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
+    #include <emscripten/html5.h>
+    #include <emscripten/val.h>
+    #include <emscripten/bind.h>
     #define GL_GLEXT_PROTOTYPES
     #define EGL_EGLEXT_PROTOTYPES
 #else

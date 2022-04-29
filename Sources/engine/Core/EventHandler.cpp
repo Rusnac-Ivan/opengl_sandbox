@@ -2,9 +2,6 @@
 #include <Rendering/View.h>
 #include <imgui.h>
 
-#ifdef __EMSCRIPTEN__
-	#include <emscripten/val.h>
-#endif
 
 
 View* EventHandler::mView = nullptr;
@@ -110,3 +107,32 @@ void EventHandler::WindowSizeCallback(GLFWwindow* window, int width, int height)
 	printf("%s\n", msg.c_str());
 #endif
 }
+
+#ifdef __EMSCRIPTEN__
+
+	EM_BOOL EventHandler::emscripten_window_resized_callback(int eventType, const void* reserved, void* userData)
+	{
+		//METHOD();
+
+		double width, height;
+		emscripten_get_element_css_size("canvas", &width, &height);
+
+		int w = (int)width, h = (int)height;
+
+		// resize window
+		GLFWwindow* window = (GLFWwindow*)userData;
+		glfwSetWindowSize(window, w, h);
+
+		printf("GLFWwindow*: %p\n", window);
+
+		std::string msg("WindowSizeCallback: " + std::to_string(width) + "x" + std::to_string(height));
+		emscripten::val::global("console").call<void>("log", msg);
+
+		// engine-specific code - internal render size should be updated here
+		//event_t e(ET_WINDOW_SIZE, w, h, timer::current_time());
+		//LOGI("Window resized to %dx%d", w, h);
+		//platform->on_window_size_changed(w, h);
+		return true;
+	}
+
+#endif
