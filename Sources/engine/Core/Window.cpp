@@ -73,6 +73,7 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	mWidth = c_width;
 	mHeight = c_height;
 
+
 	if (true) {
 		EmscriptenFullscreenStrategy strategy;
 		strategy.scaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_STDDEF;

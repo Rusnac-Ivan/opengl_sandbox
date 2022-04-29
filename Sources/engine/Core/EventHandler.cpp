@@ -87,22 +87,26 @@ void EventHandler::MouseScrollCallback(GLFWwindow* window, double xoffset, doubl
 
 void EventHandler::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-	mView->OnResize(width, height);
+	//mView->OnResize(width, height);
 	
-	std::string msg("FramebufferSizeCallback: " + std::to_string(width) + "x" + std::to_string(height));
+	/*std::string msg("FramebufferSizeCallback: " + std::to_string(width) + "x" + std::to_string(height));
 #ifdef __EMSCRIPTEN__
 	
 	emscripten::val::global("console").call<void>("log", msg);
 #else
 	printf("%s\n", msg.c_str());
-#endif
+#endif*/
 }
 
 void EventHandler::WindowSizeCallback(GLFWwindow* window, int width, int height)
 {
+	
+	mView->OnResize(width, height);
 	std::string msg("WindowSizeCallback: " + std::to_string(width) + "x" + std::to_string(height));
 #ifdef __EMSCRIPTEN__
 	emscripten::val::global("console").call<void>("log", msg);
+	emscripten::val error = emscripten::val::global("Error").new_();
+	emscripten::val::global("console").call<void>("log", error["stack"]);
 #else
 	printf("%s\n", msg.c_str());
 #endif
@@ -123,9 +127,11 @@ void EventHandler::WindowSizeCallback(GLFWwindow* window, int width, int height)
 		GLFWwindow* window = (GLFWwindow*)userData;
 		glfwSetWindowSize(window, w, h);
 
+		//WindowSizeCallback(window, w, h);
+
 		printf("GLFWwindow*: %p\n", window);
 
-		std::string msg("WindowSizeCallback: " + std::to_string(width) + "x" + std::to_string(height));
+		std::string msg("emscripten_window_resized_callback: " + std::to_string(width) + "x" + std::to_string(height));
 		emscripten::val::global("console").call<void>("log", msg);
 
 		// engine-specific code - internal render size should be updated here
