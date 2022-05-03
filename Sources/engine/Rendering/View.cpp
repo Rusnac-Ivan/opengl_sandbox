@@ -6,6 +6,9 @@
 #include "Scene.h"
 #include <vector>
 #include <fstream>
+#include <imgui.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_glfw.h>
 
 //https://github.com/KhronosGroup/glTF
 
@@ -17,49 +20,17 @@
     #define GLSL(str) (const char *)"#version 330 core\n" #str
 #endif
 
+
 float vertices[] = {
-    -0.3f, -0.3f, -0.3f, 0.0f, 0.0f, -1.0f,
-    0.3f, -0.3f, -0.3f, 0.0f, 0.0f, -1.0f,
-    0.3f, 0.3f, -0.3f, 0.0f, 0.0f, -1.0f,
-    0.3f, 0.3f, -0.3f, 0.0f, 0.0f, -1.0f,
-    -0.3f, 0.3f, -0.3f, 0.0f, 0.0f, -1.0f,
-    -0.3f, -0.3f, -0.3f, 0.0f, 0.0f, -1.0f,
-
-    -0.3f, -0.3f, 0.3f, 0.0f, 0.0f, 1.0f,
-    0.3f, -0.3f, 0.3f, 0.0f, 0.0f, 1.0f,
-    0.3f, 0.3f, 0.3f, 0.0f, 0.0f, 1.0f,
-    0.3f, 0.3f, 0.3f, 0.0f, 0.0f, 1.0f,
-    -0.3f, 0.3f, 0.3f, 0.0f, 0.0f, 1.0f,
-    -0.3f, -0.3f, 0.3f, 0.0f, 0.0f, 1.0f,
-
-    -0.3f, 0.3f, 0.3f, -1.0f, 0.0f, 0.0f,
-    -0.3f, 0.3f, -0.3f, -1.0f, 0.0f, 0.0f,
-    -0.3f, -0.3f, -0.3f, -1.0f, 0.0f, 0.0f,
-    -0.3f, -0.3f, -0.3f, -1.0f, 0.0f, 0.0f,
-    -0.3f, -0.3f, 0.3f, -1.0f, 0.0f, 0.0f,
-    -0.3f, 0.3f, 0.3f, -1.0f, 0.0f, 0.0f,
-
-    0.3f, 0.3f, 0.3f, 1.0f, 0.0f, 0.0f,
-    0.3f, 0.3f, -0.3f, 1.0f, 0.0f, 0.0f,
-    0.3f, -0.3f, -0.3f, 1.0f, 0.0f, 0.0f,
-    0.3f, -0.3f, -0.3f, 1.0f, 0.0f, 0.0f,
-    0.3f, -0.3f, 0.3f, 1.0f, 0.0f, 0.0f,
-    0.3f, 0.3f, 0.3f, 1.0f, 0.0f, 0.0f,
-
-    -0.3f, -0.3f, -0.3f, 0.0f, -1.0f, 0.0f,
-    0.3f, -0.3f, -0.3f, 0.0f, -1.0f, 0.0f,
-    0.3f, -0.3f, 0.3f, 0.0f, -1.0f, 0.0f,
-    0.3f, -0.3f, 0.3f, 0.0f, -1.0f, 0.0f,
-    -0.3f, -0.3f, 0.3f, 0.0f, -1.0f, 0.0f,
-    -0.3f, -0.3f, -0.3f, 0.0f, -1.0f, 0.0f,
-
-    -0.3f, 0.3f, -0.3f, 0.0f, 1.0f, 0.0f,
-    0.3f, 0.3f, -0.3f, 0.0f, 1.0f, 0.0f,
-    0.3f, 0.3f, 0.3f, 0.0f, 1.0f, 0.0f,
-    0.3f, 0.3f, 0.3f, 0.0f, 1.0f, 0.0f,
-    -0.3f, 0.3f, 0.3f, 0.0f, 1.0f, 0.0f,
-    -0.3f, 0.3f, -0.3f, 0.0f, 1.0f, 0.0f};
-
+        -1.0f, -1.0f, 0.0f,     0.f, 0.f, 1.f,  0.f, 0.f,
+        -1.0f,  1.0f, 0.0f,     0.f, 0.f, 1.f,  0.f, 1.f,
+         1.0f,  1.0f, 0.0f,     0.f, 0.f, 1.f,  1.f, 1.f,
+         1.0f, -1.0f, 0.0f,     0.f, 0.f, 1.f,  1.f, 0.f
+};
+unsigned int indices[] = {  // note that we start from 0!
+    0, 1, 2,  // first Triangle
+    0, 2, 3   // second Triangle
+};
 
 Scene::Model mModel;
 
@@ -74,6 +45,9 @@ void View::OnCreate(int width, int height)
 {
     mWidth = width;
     mHeight = height;
+
+    mMenuWidth = 500;
+    mMenuHeight = 500;
 }
 void View::OnDestroy()
 {
@@ -171,8 +145,8 @@ void View::OnInitialize()
 
             vec4 objectColor = texture(uBaseColor, UV0);
 
-            vec3 result = (ambient + diffuse + specular) * objectColor.rgb;
-            FragColor = vec4(result, 1.0);
+            vec3 result = (ambient + diffuse + specular) * objectColor.rgb * 2.0;
+            FragColor = vec4(result, objectColor.a);
         });
     int fragShSize = strlen(fragShader);
 
@@ -192,7 +166,7 @@ void View::OnInitialize()
 
     glm::mat4 model(1.f);
 
-    mCamera.Init(glm::vec2(mWidth, mHeight), glm::vec3(0.f, 0.f, -2.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
+    mCamera.Init(glm::vec2(mWidth, mHeight), glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
 
     mProgram->Use();
     mProgram->SetMatrix4(mProgram->Uniform("model"), model);
@@ -203,16 +177,46 @@ void View::OnInitialize()
 
 
     //mModel.loadFromFile("D:/Libraries/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf");
+
+    mMenuVBO.Data(4, sizeof(vertices), vertices, gl::Buffer::UsageMode::STATIC_DRAW);
+    mMenuVBO.AttributesPattern({gl::VertexBuffer::AttribType::POSITION, gl::VertexBuffer::AttribType::NORMAL, gl::VertexBuffer::AttribType::UV_0 });
+    mMenuEBO.Data(sizeof(indices), indices, DataType::UNSIGNED_INT, gl::Buffer::UsageMode::STATIC_DRAW);
+    mMenuEBO.SetIndexCount(6);
+
+    mMenuVAO.LinkVBO(mProgram.get(), &mMenuVBO);
+    mMenuVAO.LinkEBO(&mMenuEBO);
+
+
+    mFBMenu.Init(nullptr, mMenuWidth, mMenuHeight);
+
+    gl::Texture2D::Sampler sampler;
+    sampler.minFilter = gl::Texture::FilterMode::LINEAR;
+    sampler.magFilter = gl::Texture::FilterMode::LINEAR;
+    sampler.wrapModeS = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    sampler.wrapModeT = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    mMenuColor = mFBMenu.AttachTexture(gl::AttachType::COLOR0, gl::Texture::Format::RGBA, gl::Texture::Format::RGBA, DataType::UNSIGNED_BYTE, sampler);
+
+    if (!mFBMenu.CheckFramebufferStatus())
+    {
+        assert("Failed frame buffer !");
+    }
 }
 
-void View::OnUpdate()
+
+void View::OnSceneDraw()
 {
+    
+    gl::RenderContext::SetViewport(mWidth, mHeight);
+    gl::RenderContext::SetClearColor(.3f, .5f, .8f, 1.f);
+    gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
+
     mProgram->Use();
 
     mProgram->SetFloat3(mProgram->Uniform("lightPos"), mCamera.GetPosition());
     mProgram->SetFloat3(mProgram->Uniform("viewPos"), mCamera.GetPosition());
 
     glm::mat4 model = glm::mat4(1.0f);
+
 
     glm::mat4 model1 = glm::translate(model, glm::vec3(-0.4f, 0.f, 0.f));
     glm::mat4 model2 = glm::translate(model, glm::vec3(0.4f, 0.f, 0.f));
@@ -221,9 +225,14 @@ void View::OnUpdate()
 
     mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
 
-    gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
+    
+    gl::Pipeline::EnableBlending();
+    gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
 
-    //mProgram->SetMatrix4(mProgram->Uniform("model"), model1);
+    mProgram->SetMatrix4(mProgram->Uniform("model"), model);
+    mMenuColor->Bind();
+    mMenuVAO.Draw(gl::Primitive::TRIANGLES);
+
     //mBishopVAO->Draw(gl::Primitive::TRIANGLES);
 
     //mModel.draw(mProgram.get());
@@ -234,6 +243,85 @@ void View::OnUpdate()
 
     mCamera.Update();
 }
+void View::OnGUIDraw()
+{
+    /* {
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        
+
+        //static bool show_demo_window = true;
+        //ImGui::ShowDemoWindow(&show_demo_window);
+
+        // Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    }*/
+    {
+        mFBMenu.Bind(gl::BindType::ReadAndDraw);
+        //gl::RenderContext::SetViewport(0, mHeight - mMenuHeight, mMenuWidth, mHeight);
+        gl::RenderContext::SetViewport(0.f, 0.f, mMenuWidth, mMenuHeight);
+        gl::RenderContext::SetClearColor(0.f, 0.f, 0.f, 0.f);
+        gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::SetNextWindowPos(ImVec2(0.f, mHeight - mMenuHeight), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(mMenuWidth, mMenuHeight), ImGuiCond_Always);
+        if (ImGui::Begin("My Menu rt5", nullptr))
+        {
+            ImGui::Button("Ok", ImVec2(90.f, 30.f));
+            ImGui::Button("Save", ImVec2(90.f, 30.f));
+            ImGui::Button("Cancel", ImVec2(90.f, 30.f));
+
+            static bool animate = true;
+            ImGui::Checkbox("Animate", &animate);
+
+            static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
+            ImGui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
+
+            static float values[90] = {};
+            static int values_offset = 0;
+            static double refresh_time = 0.0;
+            if (!animate || refresh_time == 0.0)
+                refresh_time = ImGui::GetTime();
+            while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
+            {
+                static float phase = 0.0f;
+                values[values_offset] = cosf(phase);
+                values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
+                phase += 0.10f * values_offset;
+                refresh_time += 1.0f / 60.0f;
+            }
+
+            {
+                float average = 0.0f;
+                for (int n = 0; n < IM_ARRAYSIZE(values); n++)
+                    average += values[n];
+                average /= (float)IM_ARRAYSIZE(values);
+                char overlay[32];
+                sprintf(overlay, "avg %f", average);
+                ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, -1.0f, 1.0f, ImVec2(0, 80.0f));
+            }
+            ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80.0f));
+
+            ImGui::End();
+        }
+
+        // Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        mFBMenu.UnBind(gl::BindType::ReadAndDraw);
+    }
+
+    
+}
+
 void View::OnFinalize()
 {
     //mBishopVBO.release();

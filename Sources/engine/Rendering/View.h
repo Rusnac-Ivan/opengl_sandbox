@@ -6,6 +6,7 @@
 #include <Tools/Frustum.h>
 #include <GLObjects/Program.h>
 #include <GLObjects/VertexArray.h>
+#include <GLObjects/Framebuffer.h>
 #include <memory>
 
 class View
@@ -18,9 +19,18 @@ private:
     //std::unique_ptr<gl::VertexArray> mBishopVAO;
     //std::unique_ptr<gl::VertexArray> mKnightVAO;
 
+    gl::VertexBuffer mMenuVBO;
+    gl::VertexArray mMenuVAO;
+    gl::IndexBuffer mMenuEBO;
+
     std::unique_ptr<gl::Program> mProgram;
     float mWidth;
     float mHeight;
+
+    gl::Framebuffer mFBMenu;
+    gl::Texture2D* mMenuColor;
+    uint32_t mMenuWidth;
+    uint32_t mMenuHeight;
 
     //RubiksCube mRubiksCube;
 
@@ -30,7 +40,8 @@ public:
     
 
     void OnInitialize();
-    void OnUpdate();
+    void OnSceneDraw();
+    void OnGUIDraw();
     void OnFinalize();
 
     void OnMouseLeftDown(double x, double y);

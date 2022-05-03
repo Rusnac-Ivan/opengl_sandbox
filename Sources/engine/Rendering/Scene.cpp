@@ -332,7 +332,7 @@ namespace Scene
 					vertexBuffer.push_back(vert);
 				}
 
-				vertex_buffer->Data(vertexBuffer.size() * sizeof(Vertex), vertexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
+				vertex_buffer->Data(vertexCount, vertexBuffer.size() * sizeof(Vertex), vertexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
 				vertex_buffer->AttributesPattern({ 
 						gl::VertexBuffer::AttribType::POSITION,
 						gl::VertexBuffer::AttribType::NORMAL,
@@ -393,7 +393,7 @@ namespace Scene
 
 
 				std::unique_ptr<gl::VertexArray> vao = std::make_unique<gl::VertexArray>();
-				vao->LinkVBO(nullptr, vertex_buffer.get(), vertexCount);
+				vao->LinkVBO(nullptr, vertex_buffer.get());
 				vao->LinkEBO(index_buffer.get());
 
 				Primitive* newPrimitive = new Primitive(vertex_buffer, index_buffer, vao, primitive.material > -1 ? materials[primitive.material] : materials.back());

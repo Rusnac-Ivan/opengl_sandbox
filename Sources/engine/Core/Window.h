@@ -3,6 +3,7 @@
 
 #include "Platform.h"
 #include "EventHandler.h"
+#include <Rendering/View.h>
 
 #ifdef __EMSCRIPTEN__
 //#define IMGUI_IMPL_OPENGL_ES3
@@ -14,46 +15,34 @@
 
 #include <iostream>
 #include <cstdint>
+#include <memory>
 
 class Window
 {
-	class GUI
-	{
-	private:
-		Window *mWindow;
-
-	public:
-		GUI(Window *window) : mWindow(window) {}
-		~GUI() {}
-
-		void Init(const char *glsl_version);
-		void Render();
-
-	private:
-		void DrawElements();
-	};
-
 public:
-	Window() : mWidth(0), mHeight(0), mGLFWWindow(nullptr), mGUI(this) {}
+	Window() : mWidth(0), mHeight(0), mGLFWWindow(nullptr) {}
 	~Window();
 
 	void Create(uint32_t width, uint32_t height, const char *windowName);
-	void PollEvents();
 
-	void RenderGUI() { mGUI.Render(); }
+	void OnInitialize();
+	void OnRender();
+	void OnFinalize();
 
-	void SwapBuffers() { glfwSwapBuffers(mGLFWWindow); }
 	bool WindowIsOpen() { return !glfwWindowShouldClose(mGLFWWindow); }
 
 	uint32_t GetWidth() { return mWidth; }
 	uint32_t GetHeight() { return mHeight; }
 
+	View* GetView() { return mView.get(); }
+
 private:
+
 	uint32_t mWidth;
 	uint32_t mHeight;
 	GLFWwindow *mGLFWWindow;
-	GUI mGUI;
-
+	std::string mGLSLVersion;
+	std::unique_ptr<View> mView;
 
 };
 

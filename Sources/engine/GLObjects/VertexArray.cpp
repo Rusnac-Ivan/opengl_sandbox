@@ -39,8 +39,9 @@ namespace gl
 	}
 
 
-	void VertexArray::LinkVBO(Program* program, VertexBuffer* buffer, uint32_t vertexCount)
+	void VertexArray::LinkVBO(Program* program, VertexBuffer* buffer)
 	{
+		mVBO = buffer;
 		this->Bind();
 		buffer->Bind();
 		unsigned short shift = 0;
@@ -80,7 +81,7 @@ namespace gl
 		this->Bind();
 		if (!mEBO)
 		{
-			GL(DrawArrays(static_cast<GLenum>(mode), 0, mVertexCount));
+			GL(DrawArrays(static_cast<GLenum>(mode), 0, mVBO->GetVertexCount()));
 		}
 		else
 		{
@@ -94,11 +95,11 @@ namespace gl
 		this->Bind();
 		if (!mEBO)
 		{
-			GL(DrawArraysInstanced(static_cast<GLenum>(mode), 0, mVertexCount, instanceCount));
+			GL(DrawArraysInstanced(static_cast<GLenum>(mode), 0, mVBO->GetVertexCount(), instanceCount));
 		}
 		else
 		{
-			GL(DrawElementsInstanced(static_cast<GLenum>(mode), mVertexCount, GL_UNSIGNED_BYTE, nullptr, instanceCount));
+			GL(DrawElementsInstanced(static_cast<GLenum>(mode), mEBO->GetIndexCount(), (GLenum)mEBO->GetDataType(), nullptr, instanceCount));
 		}
 		this->UnBind();
 	}

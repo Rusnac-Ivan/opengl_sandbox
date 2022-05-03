@@ -22,8 +22,6 @@ MessageCallback(GLenum source,
 
 void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 {
-	
-
 	glfwSetErrorCallback(glfw_error_callback);
 
 	mWidth = width;
@@ -35,14 +33,12 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 		exit(1);
 	}
 
-
-	std::string glsl_version;
 #ifdef __EMSCRIPTEN__
-	glsl_version = "#version 300 es";
+	mGLSLVersion = "#version 300 es";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #else
-	glsl_version = "#version 400";
+	mGLSLVersion = "#version 400";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
@@ -52,7 +48,6 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	glfwWindowHint(GLFW_SAMPLES, 8);
 
 	glfwWindowHint(GLFW_RESIZABLE, 1);
-	glfwWindowHint(GLFW_MAXIMIZED, 1);
 	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	
@@ -109,8 +104,6 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, NULL);
 
-	mGUI.Init(glsl_version.c_str());
-
 #ifndef __EMSCRIPTEN__
 	if (glfwRawMouseMotionSupported())
 		glfwSetInputMode(mGLFWWindow, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -128,35 +121,10 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	//emscripten_set_resize_callback(nullptr, nullptr, false, emscWindowSizeChanged);
 #endif
 
+	mView = std::make_unique<View>();
+	mView->OnCreate(mWidth, mHeight);
 }
 
-void Window::PollEvents()
-{
-	glfwPollEvents();
-	//glfwGetFramebufferSize(mGLFWWindow, reinterpret_cast<int*>(&mWidth), reinterpret_cast<int*>(&mHeight));
-/*#ifdef __EMSCRIPTEN__
-	int c_width, c_height, is_fullscreen;
-
-	emscripten_get_canvas_size(&c_width, &c_height, &is_fullscreen);
-
-	bool is_canvas_size_change = false;
-	if (mWidth != c_width)
-	{
-		mWidth = c_width;
-		is_canvas_size_change = true;
-	}
-	if (mHeight != c_height)
-	{
-		mHeight = c_height;
-		is_canvas_size_change = true;
-	}
-
-	if (is_canvas_size_change)
-	{
-		EventHandler::WindowSizeCallback(mGLFWWindow, mWidth, mHeight);
-	}
-#endif*/
-}
 
 Window::~Window()
 {
@@ -167,7 +135,62 @@ Window::~Window()
 	}
 }
 
-void Window::GUI::Init(const char* glsl_version)
+
+static void MyStyleColors(ImGuiStyle* dst)
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	style.FrameRounding = 0.f;
+	style.FramePadding = ImVec2(5.f, 2.f);
+	style.FrameBorderSize = 1.f;
+	style.WindowBorderSize = 1.f;
+	style.GrabRounding = 20.f;
+	style.GrabMinSize = 18.f;
+	style.WindowRounding = 0.f;
+	style.DisplayWindowPadding = ImVec2(8.f, 8.f);
+	style.WindowPadding = ImVec2(8.f, 8.f);
+	style.ItemInnerSpacing = ImVec2(8.f, 4.f);
+
+
+	//float active_col_orange[3] = { 255.f / 255.f, 129.f / 255.f, 54.f / 255.f };
+	//float hover_col_orange[3] = { 0.8f, 0.4f, 0.f };
+	//float default_col_orange[3] = { 235.f / 255.f, 109.f / 255.f, 34.f / 255.f };
+
+	float active_col_white[3] = { 0.8f, 0.8f, 0.8f };
+	float hover_col_white[3] = { 0.7f, 0.7f, 0.7f };
+	float default_col_white[3] = { 0.6f, 0.6f, 0.6f };
+
+
+	float default_col[3] = { 66.f / 255.f, 68.f / 255.f, 69.f / 255.f };
+	float hover_col[3] = { 56.f / 255.f, 58.f / 255.f, 59.f / 255.f };
+	float active_col[3] = { 46.f / 255.f, 48.f / 255.f, 49.f / 255.f };
+
+	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.25f, 0.25f, 0.25f, 0.8f);
+	style.Colors[ImGuiCol_TitleBg] = ImVec4(default_col[0], default_col[1], default_col[2], 1.f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(active_col[0], active_col[1], active_col[2], 1.f);
+	style.Colors[ImGuiCol_SliderGrab] = ImVec4(default_col[0], default_col[1], default_col[2], 1.f);
+	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(active_col[0], active_col[1], active_col[2], 1.f);
+	style.Colors[ImGuiCol_Header] = ImVec4(default_col[0], default_col[1], default_col[2], 1.f);
+	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(hover_col[0], hover_col[1], hover_col[2], 1.f);
+	style.Colors[ImGuiCol_HeaderActive] = ImVec4(active_col[0], active_col[1], active_col[2], 1.f);
+	style.Colors[ImGuiCol_FrameBg] = ImVec4(active_col_white[0], active_col_white[1], active_col_white[2], 0.16f);
+	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(active_col_white[0], active_col_white[1], active_col_white[2], 0.32f);
+	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(active_col_white[0], active_col_white[1], active_col_white[2], 0.48f);
+	style.Colors[ImGuiCol_CheckMark] = ImVec4(active_col_white[0], active_col_white[1], active_col_white[2], 1.0f);
+	style.Colors[ImGuiCol_Tab] = ImVec4(default_col[0], default_col[1], default_col[2], 0.5f);
+	style.Colors[ImGuiCol_TabHovered] = ImVec4(hover_col[0], hover_col[1], hover_col[2], 1.0f);
+	style.Colors[ImGuiCol_TabActive] = ImVec4(active_col[0], active_col[1], active_col[2], 1.0f);
+	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(active_col[0], active_col[1], active_col[2], 0.2f);
+	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(active_col[0], active_col[1], active_col[2], 0.4f);
+	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(active_col[0], active_col[1], active_col[2], 0.6f);
+	style.Colors[ImGuiCol_Separator] = ImVec4(active_col[0], active_col[1], active_col[2], 0.6f);
+	style.Colors[ImGuiCol_Button] = ImVec4(default_col[0], default_col[1], default_col[2], 1.0f);
+	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(active_col_white[0], active_col_white[1], active_col_white[2], 0.6f);
+	style.Colors[ImGuiCol_ButtonActive] = ImVec4(active_col_white[0], active_col_white[1], active_col_white[2], 1.0f);
+	style.Colors[ImGuiCol_Text] = ImVec4(1.f, 1.f, 1.f, 1.f);
+}
+
+void Window::OnInitialize()
 {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -178,29 +201,51 @@ void Window::GUI::Init(const char* glsl_version)
 	io.WantCaptureKeyboard = false;
 
 	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsDark();
+	//ImGui::StyleColorsLight();
+	ImGui::StyleColorsClassic();
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(mWindow->mGLFWWindow, true);
-	ImGui_ImplOpenGL3_Init(glsl_version);
+	ImGui_ImplGlfw_InitForOpenGL(mGLFWWindow, true);
+	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
+
+	mView->OnInitialize();
 }
-
-void Window::GUI::Render()
+void Window::OnRender()
 {
-	// Start the Dear ImGui frame
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
+	mView->OnSceneDraw();
 
-	DrawElements();
+	// Start the Dear ImGui frame
+	//ImGui_ImplOpenGL3_NewFrame();
+	//ImGui_ImplGlfw_NewFrame();
+	//ImGui::NewFrame();
+
+	mView->OnGUIDraw();
 
 	// Rendering
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	//ImGui::Render();
+	//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	glfwSwapBuffers(mGLFWWindow);
+	glfwPollEvents();
+}
+void Window::OnFinalize()
+{
+	mView->OnFinalize();
+
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
+	mView.release();
 }
 
-void Window::GUI::DrawElements()
+
+
+
+/*void Window::GUI::DrawElements()
 {
 	static bool show_demo_window = true;
 	ImGui::ShowDemoWindow(&show_demo_window);
-}
+}*/

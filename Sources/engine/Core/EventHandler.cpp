@@ -127,8 +127,6 @@ void EventHandler::WindowSizeCallback(GLFWwindow* window, int width, int height)
 		GLFWwindow* window = (GLFWwindow*)userData;
 		glfwSetWindowSize(window, w, h);
 
-		//WindowSizeCallback(window, w, h);
-
 		printf("GLFWwindow*: %p\n", window);
 
 		std::string msg("emscripten_window_resized_callback: " + std::to_string(width) + "x" + std::to_string(height));

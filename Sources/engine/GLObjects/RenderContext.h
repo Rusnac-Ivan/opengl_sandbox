@@ -25,7 +25,8 @@ namespace gl
 		static void Clear(const BufferBit buffBit_0, const BufferBit buffBit_1);
 		static void Clear(const BufferBit buffBit_0, const BufferBit buffBit_1, const BufferBit buffBit_2);
 
-		static void SetViewport(const unsigned short width, const unsigned short height);
+		static void SetViewport(unsigned short width, unsigned short height);
+		static void SetViewport(unsigned short x, unsigned short y, unsigned short width, unsigned short height);
 		static void SetClearColor(const float &red, const float &green, const float &blue, const float &alpha);
 		static void SetClearColor(const glm::vec4 &color);
 		static void SetClearDepth(const float &val);
@@ -48,9 +49,14 @@ namespace gl
 		GL(Clear(buffBit_0 | buffBit_1 | buffBit_2));
 	}
 
-	inline void RenderContext::SetViewport(const unsigned short width, const unsigned short height)
+	inline void RenderContext::SetViewport(unsigned short width, unsigned short height)
 	{
 		GL(Viewport(0, 0, width, height));
+	}
+
+	inline void RenderContext::SetViewport(unsigned short x, unsigned short y, unsigned short width, unsigned short height)
+	{
+		GL(Viewport(x, y, width, height));
 	}
 
 	inline void RenderContext::SetClearColor(const float &red, const float &green, const float &blue, const float &alpha)

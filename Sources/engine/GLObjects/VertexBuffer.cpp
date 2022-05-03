@@ -48,7 +48,7 @@ namespace gl
 		Buffer::Bind(Buffer::Type::ARRAY);
 	}
 
-	void VertexBuffer::Data(unsigned int size, const void* data, UsageMode accessFreq)
+	void VertexBuffer::Data(unsigned int vertex_count, unsigned int size, const void* data, UsageMode accessFreq)
 	{
 		this->Bind();
 		Buffer::Data(size, data, accessFreq);

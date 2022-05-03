@@ -26,7 +26,7 @@ namespace gl
 	private:
 		unsigned int mID;
 		IndexBuffer* mEBO;
-		uint32_t mVertexCount;
+		VertexBuffer* mVBO;
 	public:
 		VertexArray();
 		~VertexArray();
@@ -39,7 +39,7 @@ namespace gl
 		void Bind();
 		void UnBind();
 
-		void LinkVBO(Program* program, VertexBuffer* buffer, uint32_t vertexCount);
+		void LinkVBO(Program* program, VertexBuffer* buffer);
 		//void UnLinkVBO(VertexBuffer& buffer);
 		void LinkEBO(IndexBuffer* buffer);
 

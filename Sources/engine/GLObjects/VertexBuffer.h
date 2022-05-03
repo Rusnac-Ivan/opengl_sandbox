@@ -52,7 +52,7 @@ namespace gl
 			
 			void AttributesPattern(std::initializer_list<AttribType> attributes);
 			void AttributesPattern(std::vector<AttribType> attributes);
-			void Data(unsigned int size, const void* data, UsageMode accessFreq);
+			void Data(unsigned int vertex_count, unsigned int size, const void* data, UsageMode accessFreq);
 			void SubData(unsigned short offset, unsigned short size, void* data);
 			std::vector<Attribute>& GetAttributes() { return mAttributes; }
 			

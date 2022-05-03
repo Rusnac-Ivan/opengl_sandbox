@@ -3,8 +3,9 @@
 
 #include "EventHandler.h"
 #include "Window.h"
-#include <Rendering/View.h>
 #include <Core/Platform.h>
+
+class View;
 
 class Application
 {
@@ -13,33 +14,23 @@ private:
 	{
 		mWindow.Create(width, height, windowName);
 
+		EventHandler::SetListener(mWindow.GetView());
 
-
-		//mView = new View;
-		static View view;
-		mView = &view;
-		mView->OnCreate(width, height);
-		EventHandler::SetListener(mView);
+		mWindow.OnInitialize();
 #ifdef __EMSCRIPTEN__
-		mView->OnInitialize();
 		emscripten_set_main_loop_arg(Application::MainLoop, (void*)this, 0, 1);
-		mView->OnFinalize();
 #else
-		mView->OnInitialize();
 		while (mWindow.WindowIsOpen())
 		{
 			MainLoop(this);
 		}
-		mView->OnFinalize();
 #endif
+		mWindow.OnFinalize();
 	}
 	Application(Application &app) {}
 	Application &operator=(Application &app) { return *this; }
 	~Application()
-	{
-		mView->OnDestroy();
-		//delete mView;
-	}
+	{}
 
 	static void MainLoop(void* ptr);
 
@@ -52,7 +43,7 @@ public:
 
 private:
 	
-	View* mView;
+	//View* mView;
 	Window mWindow;
 };
 
