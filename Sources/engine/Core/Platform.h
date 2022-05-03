@@ -59,4 +59,12 @@ unsigned short DataSize(const DataType& dataType);
 
 #endif
 
+
+#ifdef __EMSCRIPTEN__
+    #define GLSL(str) (const char *)"#version 300 es\n" #str
+#define GL_ES
+#else
+    #define GLSL(str) (const char *)"#version 330 core\n" #str
+#endif
+
 #endif

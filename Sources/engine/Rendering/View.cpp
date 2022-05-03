@@ -13,12 +13,7 @@
 //https://github.com/KhronosGroup/glTF
 
 
-#ifdef __EMSCRIPTEN__
-    #define GLSL(str) (const char *)"#version 300 es\n" #str
-#define GL_ES
-#else
-    #define GLSL(str) (const char *)"#version 330 core\n" #str
-#endif
+
 
 
 float vertices[] = {
@@ -39,6 +34,7 @@ View::View()
 }
 View::~View()
 {
+    int a = 0;
 }
 
 void View::OnCreate(int width, int height)
@@ -46,8 +42,6 @@ void View::OnCreate(int width, int height)
     mWidth = width;
     mHeight = height;
 
-    mMenuWidth = 500;
-    mMenuHeight = 500;
 }
 void View::OnDestroy()
 {
@@ -55,6 +49,8 @@ void View::OnDestroy()
 
 void View::OnInitialize()
 {
+    //Menu3D::Initialize();
+
     //mBishopVBO = std::make_unique<gl::VertexBuffer>();
     //mKnightVBO = std::make_unique<gl::VertexBuffer>();
     //mBishopVAO = std::make_unique<gl::VertexArray>();
@@ -178,28 +174,30 @@ void View::OnInitialize()
 
     //mModel.loadFromFile("D:/Libraries/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf");
 
-    mMenuVBO.Data(4, sizeof(vertices), vertices, gl::Buffer::UsageMode::STATIC_DRAW);
-    mMenuVBO.AttributesPattern({gl::VertexBuffer::AttribType::POSITION, gl::VertexBuffer::AttribType::NORMAL, gl::VertexBuffer::AttribType::UV_0 });
-    mMenuEBO.Data(sizeof(indices), indices, DataType::UNSIGNED_INT, gl::Buffer::UsageMode::STATIC_DRAW);
-    mMenuEBO.SetIndexCount(6);
+    //mMenuVBO.Data(4, sizeof(vertices), vertices, gl::Buffer::UsageMode::STATIC_DRAW);
+    //mMenuVBO.AttributesPattern({gl::VertexBuffer::AttribType::POSITION, gl::VertexBuffer::AttribType::NORMAL, gl::VertexBuffer::AttribType::UV_0 });
+    //mMenuEBO.Data(sizeof(indices), indices, DataType::UNSIGNED_INT, gl::Buffer::UsageMode::STATIC_DRAW);
+    //mMenuEBO.SetIndexCount(6);
 
-    mMenuVAO.LinkVBO(mProgram.get(), &mMenuVBO);
-    mMenuVAO.LinkEBO(&mMenuEBO);
+    //mMenuVAO.LinkVBO(mProgram.get(), &mMenuVBO);
+    //mMenuVAO.LinkEBO(&mMenuEBO);
 
 
-    mFBMenu.Init(nullptr, mMenuWidth, mMenuHeight);
+    //mFBMenu.Init(nullptr, mMenuWidth, mMenuHeight);
+    //
+    //gl::Texture2D::Sampler sampler;
+    //sampler.minFilter = gl::Texture::FilterMode::LINEAR;
+    //sampler.magFilter = gl::Texture::FilterMode::LINEAR;
+    //sampler.wrapModeS = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    //sampler.wrapModeT = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    //mMenuColor = mFBMenu.AttachTexture(gl::AttachType::COLOR0, gl::Texture::Format::RGBA, gl::Texture::Format::RGBA, DataType::UNSIGNED_BYTE, sampler);
 
-    gl::Texture2D::Sampler sampler;
-    sampler.minFilter = gl::Texture::FilterMode::LINEAR;
-    sampler.magFilter = gl::Texture::FilterMode::LINEAR;
-    sampler.wrapModeS = gl::Texture::WrapMode::CLAMP_TO_EDGE;
-    sampler.wrapModeT = gl::Texture::WrapMode::CLAMP_TO_EDGE;
-    mMenuColor = mFBMenu.AttachTexture(gl::AttachType::COLOR0, gl::Texture::Format::RGBA, gl::Texture::Format::RGBA, DataType::UNSIGNED_BYTE, sampler);
-
-    if (!mFBMenu.CheckFramebufferStatus())
+    /*if (!mFBMenu.CheckFramebufferStatus())
     {
         assert("Failed frame buffer !");
-    }
+    }*/
+
+    mMenu3D.Create(500.f, 700.f);
 }
 
 
@@ -229,9 +227,11 @@ void View::OnSceneDraw()
     gl::Pipeline::EnableBlending();
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
 
-    mProgram->SetMatrix4(mProgram->Uniform("model"), model);
-    mMenuColor->Bind();
-    mMenuVAO.Draw(gl::Primitive::TRIANGLES);
+    //mProgram->SetMatrix4(mProgram->Uniform("model"), model);
+    //mMenuColor->Bind();
+    //mMenuVAO.Draw(gl::Primitive::TRIANGLES);
+
+    mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
 
     //mBishopVAO->Draw(gl::Primitive::TRIANGLES);
 
@@ -261,62 +261,7 @@ void View::OnGUIDraw()
 
     }*/
     {
-        mFBMenu.Bind(gl::BindType::ReadAndDraw);
-        //gl::RenderContext::SetViewport(0, mHeight - mMenuHeight, mMenuWidth, mHeight);
-        gl::RenderContext::SetViewport(0.f, 0.f, mMenuWidth, mMenuHeight);
-        gl::RenderContext::SetClearColor(0.f, 0.f, 0.f, 0.f);
-        gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::SetNextWindowPos(ImVec2(0.f, mHeight - mMenuHeight), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(mMenuWidth, mMenuHeight), ImGuiCond_Always);
-        if (ImGui::Begin("My Menu rt5", nullptr))
-        {
-            ImGui::Button("Ok", ImVec2(90.f, 30.f));
-            ImGui::Button("Save", ImVec2(90.f, 30.f));
-            ImGui::Button("Cancel", ImVec2(90.f, 30.f));
-
-            static bool animate = true;
-            ImGui::Checkbox("Animate", &animate);
-
-            static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
-            ImGui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
-
-            static float values[90] = {};
-            static int values_offset = 0;
-            static double refresh_time = 0.0;
-            if (!animate || refresh_time == 0.0)
-                refresh_time = ImGui::GetTime();
-            while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
-            {
-                static float phase = 0.0f;
-                values[values_offset] = cosf(phase);
-                values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
-                phase += 0.10f * values_offset;
-                refresh_time += 1.0f / 60.0f;
-            }
-
-            {
-                float average = 0.0f;
-                for (int n = 0; n < IM_ARRAYSIZE(values); n++)
-                    average += values[n];
-                average /= (float)IM_ARRAYSIZE(values);
-                char overlay[32];
-                sprintf(overlay, "avg %f", average);
-                ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, -1.0f, 1.0f, ImVec2(0, 80.0f));
-            }
-            ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80.0f));
-
-            ImGui::End();
-        }
-
-        // Rendering
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        mFBMenu.UnBind(gl::BindType::ReadAndDraw);
+        mMenu3D.RenderIn(mWidth, mHeight);
     }
 
     

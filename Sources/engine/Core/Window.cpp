@@ -1,4 +1,5 @@
 #include "Window.h"
+#include <Rendering/imgui_impl_3d_to_2d.h>
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -206,7 +207,8 @@ void Window::OnInitialize()
 	ImGui::StyleColorsClassic();
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(mGLFWWindow, true);
+	//ImGui_ImplGlfw_InitForOpenGL(mGLFWWindow, true);
+	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
 	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
 
 	mView->OnInitialize();
@@ -235,7 +237,7 @@ void Window::OnFinalize()
 
 	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
+	ImGui_ImplGlfw_3d_to_2d_Shutdown();
 	ImGui::DestroyContext();
 
 	mView.release();
