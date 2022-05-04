@@ -148,7 +148,7 @@ static ImGui_ImplGlfw_3d_to_2d_Data* ImGui_ImplGlfw_3d_to_2d_GetBackendData()
     return ImGui::GetCurrentContext() ? (ImGui_ImplGlfw_3d_to_2d_Data*)ImGui::GetIO().BackendPlatformUserData : NULL;
 }
 
-static void ImGui_ImplGlfw_3d_to_2d_UpdateMousePosAndButtons()
+static void ImGui_ImplGlfw_3d_to_2d_UpdateMousePosAndButtons(float mouse_x, float mouse_y)
 {
     ImGui_ImplGlfw_3d_to_2d_Data* bd = ImGui_ImplGlfw_3d_to_2d_GetBackendData();
     ImGuiIO& io = ImGui::GetIO();
@@ -178,8 +178,8 @@ static void ImGui_ImplGlfw_3d_to_2d_UpdateMousePosAndButtons()
     // Set Dear ImGui mouse position from OS position
     if (mouse_window != NULL)
     {
-        double mouse_x, mouse_y;
-        glfwGetCursorPos(mouse_window, &mouse_x, &mouse_y);
+        //double mouse_x, mouse_y;
+        //glfwGetCursorPos(mouse_window, &mouse_x, &mouse_y);
         io.MousePos = ImVec2((float)mouse_x, (float)mouse_y);
     }
 }
@@ -243,7 +243,9 @@ static void ImGui_ImplGlfw_3d_to_2d_UpdateGamepads()
         io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
 }
 
-void     ImGui_ImplGlfw_3d_to_2d_NewFrame()
+static ImGuiMouseCursor     g_LastMouseCursor = ImGuiMouseCursor_COUNT;
+
+void     ImGui_ImplGlfw_3d_to_2d_NewFrame(float mouse_x, float mouse_y)
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplGlfw_3d_to_2d_Data* bd = ImGui_ImplGlfw_3d_to_2d_GetBackendData();
@@ -263,11 +265,13 @@ void     ImGui_ImplGlfw_3d_to_2d_NewFrame()
     io.DeltaTime = bd->Time > 0.0 ? (float)(current_time - bd->Time) : (float)(1.0f / 60.0f);
     bd->Time = current_time;
 
-    ImGui_ImplGlfw_3d_to_2d_UpdateMousePosAndButtons();
+    // Update OS mouse position
+    ImGui_ImplGlfw_3d_to_2d_UpdateMousePosAndButtons(mouse_x, mouse_y);
+
     ImGui_ImplGlfw_3d_to_2d_UpdateMouseCursor();
 
     // Update game controllers (if enabled and available)
-    ImGui_ImplGlfw_3d_to_2d_UpdateGamepads();
+    //ImGui_ImplGlfw_3d_to_2d_UpdateGamepads();
 }
 
 // GLFW callbacks

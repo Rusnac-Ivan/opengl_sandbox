@@ -22,8 +22,13 @@ class Menu3D
 
 	static std::unique_ptr<gl::Program> mProgram;
 	static float mQuadVert[];
+	static glm::vec3 mVertices[4];
 	static uint32_t mQuadIdx[];
 	static uint32_t mObjectCount;
+
+	gl::VertexBuffer mLineVBO;
+	gl::VertexArray mLineVAO;
+	glm::vec3	mPoint;
 public:
 	Menu3D();
 	~Menu3D();
@@ -32,11 +37,11 @@ public:
 
 	void Create(float width, float height);
 
-	void RenderIn(float window_width, float window_height);
+	void RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj);
 	void RenderOut(const glm::mat4& view_proj);
 
 private:
-
+	glm::vec3 CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj);
 };
 
 

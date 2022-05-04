@@ -20,7 +20,7 @@ private:
     float mHeight;
 
     Menu3D mMenu3D;
-
+    glm::vec2 mMousePos;
 public:
     View();
     ~View();

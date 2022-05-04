@@ -28,8 +28,7 @@ void EventHandler::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
 void EventHandler::MouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
 {
-	if (ImGui::GetIO().WantCaptureMouse)
-		return;
+	
 
 	mView->OnMouseMove(xpos, ypos);
 }

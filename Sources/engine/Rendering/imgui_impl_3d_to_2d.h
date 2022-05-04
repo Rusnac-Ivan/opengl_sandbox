@@ -6,7 +6,7 @@ struct GLFWmonitor;
 
 
 IMGUI_IMPL_API bool		ImGui_ImplGlfw_3d_to_2d_Init(GLFWwindow* window, bool install_callbacks);
-IMGUI_IMPL_API void     ImGui_ImplGlfw_3d_to_2d_NewFrame();
+IMGUI_IMPL_API void     ImGui_ImplGlfw_3d_to_2d_NewFrame(float mouse_x, float mouse_y);
 IMGUI_IMPL_API void     ImGui_ImplGlfw_3d_to_2d_Shutdown();
 
 // GLFW callbacks

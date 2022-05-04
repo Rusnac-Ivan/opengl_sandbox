@@ -62,11 +62,13 @@ void Camera::Resize(const glm::vec2& winSize)
 	
 	float aspect = (float)mWidth / (float)mHeight;
 
-	mProjectMat[0][0] = 1.f / (aspect * tanf(mFov * (float)M_PI / 180.f / 2.f));
+	mProjectMat = glm::perspective(glm::radians(mFov), aspect, mNear, mFar);
+
+	/*mProjectMat[0][0] = 1.f / (aspect * tanf(mFov * (float)M_PI / 180.f / 2.f));
 	mProjectMat[1][1] = 1.f / tanf(mFov * (float)M_PI / 180.f / 2.f);
 	mProjectMat[2][2] = -(mFar + mNear) / (mFar - mNear);
 	mProjectMat[2][3] = -1.f;
-	mProjectMat[3][2] = -(2.f * mFar * mNear) / (mFar - mNear);
+	mProjectMat[3][2] = -(2.f * mFar * mNear) / (mFar - mNear);*/
 }
 
 void Camera::BeginDrag(float x, float y)
@@ -151,7 +153,7 @@ void Camera::Update()
 		glm::vec3 new_pos;
 		float delta = mDollyFactor * (MAX_DOLLY_OFFSET / (DOLLY_DURATION * DOLLY_DURATION)) * mDollyCounter * mDollyCounter;
 
-		new_pos = mPos + delta * mLook;
+		new_pos = mPos + delta / 2.f * mLook;
 
 		SetPosition(new_pos);
 	}

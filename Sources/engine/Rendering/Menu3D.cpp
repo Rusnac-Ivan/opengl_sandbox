@@ -4,12 +4,16 @@
 #include <GLObjects/RenderContext.h>
 #include "imgui_impl_3d_to_2d.h"
 #include <glm/ext/matrix_transform.hpp>
-//#include <backends/imgui_impl_glfw.h>
+#include <glm/gtx/intersect.hpp>
+#include <glm/ext/matrix_projection.hpp>
+
+//In a header somewhere.
+
 
 
 uint32_t Menu3D::mObjectCount = 0;
 std::unique_ptr<gl::Program> Menu3D::mProgram;
-
+glm::vec3 Menu3D::mVertices[4];
 
 Menu3D::Menu3D()
 {
@@ -57,13 +61,16 @@ void Menu3D::Initialize()
 
         out vec3 FragPos;
         out vec2 UV0;
+        out vec3 Pos;
 
+        uniform vec3 pos;
         uniform mat4 model;
         uniform mat4 proj_view;
 
         void main()
         {
             FragPos = vec3(model * vec4(aPos, 1.0));
+            Pos = vec3(model * vec4(pos, 1.0));
             UV0 = aUV0;
             gl_Position = proj_view * vec4(FragPos, 1.0);
         }
@@ -81,13 +88,21 @@ void Menu3D::Initialize()
 
         in vec3 FragPos;
         in vec2 UV0;
+        in vec3 Pos;
+
 
         //uniform vec3 objectColor;
 
         void main()
         {
-            vec4 base_col = texture(uBaseColor, UV0);
-            FragColor = vec4(base_col.rgb, base_col.a);
+            if (dot(Pos - FragPos, Pos - FragPos) < 0.0001)
+                FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            else
+            {
+                vec4 base_col = texture(uBaseColor, UV0);
+                FragColor = vec4(base_col.rgb, base_col.a);
+            }
+            
         }
     );
     int fragShSize = strlen(fragShader);
@@ -105,6 +120,9 @@ void Menu3D::Initialize()
 
 void Menu3D::Create(float width, float height)
 {
+
+
+
     mWidth = width;
     mHeight = height;
 
@@ -120,6 +138,12 @@ void Menu3D::Create(float width, float height)
          quadW_half,  quadH_half, 0.0f,    1.f, 1.f,
          quadW_half, -quadH_half, 0.0f,    1.f, 0.f
     };
+
+    mVertices[0] = glm::vec3(-quadW_half, -quadH_half, 0.0f);
+    mVertices[1] = glm::vec3(-quadW_half, quadH_half, 0.0f);
+    mVertices[2] = glm::vec3(quadW_half, quadH_half, 0.0f);
+    mVertices[3] = glm::vec3(quadW_half, -quadH_half, 0.0f);
+
     uint32_t QuadIdx[] =
     {
         0, 1, 2,  // first Triangle
@@ -150,8 +174,30 @@ void Menu3D::Create(float width, float height)
     }
 }
 
-void Menu3D::RenderIn(float window_width, float window_height)
+glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj)
 {
+    return glm::unProject(glm::vec3(mouse_pos.x, window_size.y - mouse_pos.y, 0.f), view, proj, glm::vec4(0.f, 0.f, window_size.x, window_size.y));
+
+
+    /*float mouseX = mouse_pos.x / (window_size.x * 0.5f) - 1.0f;
+    float mouseY = mouse_pos.y / (window_size.y * 0.5f) - 1.0f;
+
+    glm::mat4 invVP = glm::inverse(proj_view);
+    glm::vec4 screenPos = glm::vec4(mouseX, -mouseY, 1.0f, 1.0f);
+
+    glm::vec4 worldPos = invVP * screenPos;
+
+    glm::vec3 dir = glm::normalize(glm::vec3(worldPos));
+
+    return dir;*/
+}
+
+static glm::vec3 Point = {};
+
+void Menu3D::RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj)
+{
+    //mouse_pos = glm::vec2(window_size / 2.f);
+
     mFBO.Bind(gl::BindType::ReadAndDraw);
     //gl::RenderContext::SetViewport(0, mHeight - mMenuHeight, mMenuWidth, mHeight);
     //gl::RenderContext::SetViewport(0.f, 0.f, mWidth, mHeight);
@@ -161,16 +207,53 @@ void Menu3D::RenderIn(float window_width, float window_height)
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     //ImGui_ImplGlfw_NewFrame();
-    ImGui_ImplGlfw_3d_to_2d_NewFrame();
+
+    glm::vec3 ray = glm::normalize(CreateRay(mouse_pos, window_size, view, proj) - cam_pos);
+    float distance = 0.f;
+
+    glm::vec2 new_mouse_pos = glm::vec2(window_size.x, 0.f);
+    if (glm::intersectRayPlane(cam_pos, ray, mVertices[0], glm::vec3(0.f, 0.f, 1.f), distance))
+    {
+        int a = 0;
+        glm::vec3 P1 = cam_pos + ray * distance;
+        
+        Point = P1;
+        
+
+        //P1 = mVertices[2];
+
+        glm::vec3 Vx = glm::normalize(mVertices[3] - mVertices[0]);
+        glm::vec3 Vy = glm::normalize(mVertices[1] - mVertices[0]);
+
+        glm::vec3 P1_V0 = P1 - mVertices[0];
+
+        float x = glm::dot(Vx, P1_V0);
+        //glm::vec3 X = x * Vx;
+
+        float y = glm::dot(Vy, P1_V0);
+        //glm::vec3 Y = y * Vy;
+
+        new_mouse_pos = glm::vec2((mWidth / glm::length(mVertices[3] - mVertices[0])) * x, window_size.y - (mHeight / glm::length(mVertices[1] - mVertices[0])) * y);
+    }
+    std::string info(std::to_string(new_mouse_pos.x) + ", " + std::to_string(new_mouse_pos.y));
+    
+    ImGui_ImplGlfw_3d_to_2d_NewFrame(new_mouse_pos.x, new_mouse_pos.y);
     ImGui::NewFrame();
 
-    ImGui::SetNextWindowPos(ImVec2(0.f, window_height - mHeight), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(0.f, window_size.y - mHeight), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(mWidth,  mHeight), ImGuiCond_Always);
     if (ImGui::Begin("My Menu rt5", nullptr))
     {
         ImGui::Button("Ok", ImVec2(90.f, 30.f));
         ImGui::Button("Save", ImVec2(90.f, 30.f));
         ImGui::Button("Cancel", ImVec2(90.f, 30.f));
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        draw_list->AddCircleFilled(ImVec2(new_mouse_pos.x, new_mouse_pos.y), 10.f, ImColor(ImVec4(255.f / 255.f, 129.f / 255.f, 50.f / 255.f, 1.0f)));
+
+        static char buff[64] = {};
+        ImGui::InputText("in text", buff, IM_ARRAYSIZE(buff));
 
         static bool animate = true;
         ImGui::Checkbox("Animate", &animate);
@@ -203,8 +286,9 @@ void Menu3D::RenderIn(float window_width, float window_height)
         }
         ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80.0f));
 
-        ImGui::End();
+        
     }
+    ImGui::End();
 
     // Rendering
     ImGui::Render();
@@ -220,9 +304,12 @@ void Menu3D::RenderOut(const glm::mat4& proj_view)
     //model = glm::rotate(model, angle, glm::vec3(0.f, 0.f, 1.f));
     //angle += 0.01f;
     mProgram->Use();
+    mProgram->SetFloat3(mProgram->Uniform("pos"), Point);
     mProgram->SetMatrix4(mProgram->Uniform("proj_view"), proj_view);
     mProgram->SetMatrix4(mProgram->Uniform("model"),  model);
     mColorBuff->Bind();
     mVAO.Draw(gl::Primitive::TRIANGLES);
     mProgram->StopUsing();
+
+
 }
