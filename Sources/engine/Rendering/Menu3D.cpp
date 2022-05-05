@@ -90,9 +90,6 @@ void Menu3D::Initialize()
         in vec2 UV0;
         in vec3 Pos;
 
-
-        //uniform vec3 objectColor;
-
         void main()
         {
             if (dot(Pos - FragPos, Pos - FragPos) < 0.0001)
@@ -120,9 +117,6 @@ void Menu3D::Initialize()
 
 void Menu3D::Create(float width, float height)
 {
-
-
-
     mWidth = width;
     mHeight = height;
 
