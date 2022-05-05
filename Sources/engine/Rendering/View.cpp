@@ -9,11 +9,9 @@
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#include "webxr.h"
 
 //https://github.com/KhronosGroup/glTF
-
-
-
 
 
 float vertices[] = {
@@ -198,6 +196,60 @@ void View::OnInitialize()
     }*/
 
     mMenu3D.Create(500.f, 700.f);
+
+
+	webxr_init(
+		/* Frame callback */
+		[](void* userData, int time, WebXRRigidTransform* headPose, WebXRView views[2], int viewCount) {
+			printf("webxr_init: Frame callback\n");
+
+            glm::mat4 _viewMatrices[2];
+            glm::mat4 _projectionMatrices[2];
+            glm::mat4 _controllerTransformations[2];
+            glm::vec2 _viewports[2];
+
+            int viewIndex = 0;
+            for(WebXRView view : {views[0], views[1]})
+            {
+                /*_viewports[viewIndex] = Range2Di::fromSize(
+                    {view.viewport[0], view.viewport[1]},
+                    {view.viewport[2], view.viewport[3]});
+
+                _viewMatrices[viewIndex] = Matrix4::from(view.viewMatrix);
+
+                _projectionMatrices[viewIndex] = Matrix4::from(view.projectionMatrix);*/
+
+                ++viewIndex;
+            }
+
+            WebXRInputSource sources[2];
+            int sourcesCount = 0;
+            webxr_get_input_sources(sources, 2, &sourcesCount);
+
+            for(int i = 0; i < sourcesCount; ++i)
+            {
+                //webxr_get_input_pose(&sources[i], _controllerTransformations[i].data());
+            }
+
+            ((View*)userData)->OnSceneDraw();
+            ((View*)userData)->OnGUIDraw();
+		},
+		/* Session start callback */
+		[](void* userData, int mode) {
+			printf("webxr_init: Session start callback\n");
+		},
+		/* Session end callback */
+		[](void* userData, int mode) {
+			printf("webxr_init: Session end callback\n");
+		},
+		/* Error callback */
+		[](void* userData, int error) {
+			printf("webxr_init: Errord callback\n");
+		},
+		/* userData */
+		this);
+
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
 }
 
 
@@ -243,6 +295,7 @@ void View::OnSceneDraw()
 
     mCamera.Update();
 }
+
 void View::OnGUIDraw()
 {
     /* {
@@ -281,30 +334,36 @@ void View::OnMouseLeftDown(double x, double y)
 {
     mCamera.BeginDrag((float)x, (float)y);
 }
+
 void View::OnMouseLeftUp(double x, double y)
 {
     mCamera.EndDrag();
 }
+
 void View::OnMouseRightDown(double x, double y)
 {
     mCamera.BeginPitch((float)x, (float)y);
 }
+
 void View::OnMouseRightUp(double x, double y)
 {
     mCamera.EndPitch();
 }
+
 void View::OnMouseMiddleDown(double x, double y)
 {
 }
+
 void View::OnMouseMiddleUp(double x, double y)
 {
 }
+
 void View::OnMouseMove(double x, double y)
 {
-
     mCamera.Drag((float)x, (float)y);
     mCamera.Pitch((float)x, (float)y);
 }
+
 void View::OnMouseWhell(double offset)
 {
     mCamera.Wheel(offset);
