@@ -218,7 +218,7 @@ void Window::OnInitialize()
 
 	// Setup Platform/Renderer backends
 	//ImGui_ImplGlfw_InitForOpenGL(mGLFWWindow, true);
-	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
+	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, true);
 	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
 
 	mView->OnInitialize();
@@ -233,6 +233,8 @@ void Window::OnRender()
 	//ImGui::NewFrame();
 
 	mView->OnGUIDraw();
+	std::string info(std::to_string(ImGui::GetIO().MousePos.x) + ", " + std::to_string(ImGui::GetIO().MousePos.y));
+	glfwSetWindowTitle(mGLFWWindow, info.c_str());
 
 	// Rendering
 	//ImGui::Render();

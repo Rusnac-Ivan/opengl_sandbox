@@ -29,6 +29,7 @@ Scene::Model mModel;
 
 View::View()
 {
+    mMousePos = glm::vec2();
 }
 View::~View()
 {
@@ -314,7 +315,7 @@ void View::OnGUIDraw()
 
     }*/
     {
-        mMenu3D.RenderIn(mWidth, mHeight);
+        mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
     }
 
     
@@ -360,6 +361,11 @@ void View::OnMouseMiddleUp(double x, double y)
 
 void View::OnMouseMove(double x, double y)
 {
+    mMousePos = glm::vec2(x, y);
+
+    if (ImGui::GetIO().WantCaptureMouse)
+        return;
+
     mCamera.Drag((float)x, (float)y);
     mCamera.Pitch((float)x, (float)y);
 }
