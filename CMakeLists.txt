@@ -21,8 +21,8 @@ message(STATUS "RESOURCES_ABSOLUTE_PATH : ${RESOURCES_ABSOLUTE_PATH}")
 
 foreach(absolute_file_path  ${RESOURCES_ABSOLUTE_PATH})
     #message(STATUS "absolute_file_path : ${absolute_file_path}")
-    file(RELATIVE_PATH FILE_RELATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${absolute_file_path})
-    set(RESOURCES_RELATIVE_PATH "${RESOURCES_RELATIVE_PATH} ${FILE_RELATIVE_PATH}")
+    #file(RELATIVE_PATH FILE_RELATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${absolute_file_path})
+    set(RESOURCES_RELATIVE_PATH "${RESOURCES_RELATIVE_PATH} ${absolute_file_path}")
 endforeach()
 
 message(STATUS "RESOURCES_RELATIVE_PATH : ${RESOURCES_RELATIVE_PATH}")
