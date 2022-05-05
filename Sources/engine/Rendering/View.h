@@ -9,6 +9,7 @@
 #include <GLObjects/Framebuffer.h>
 #include <Rendering/Menu3D.h>
 #include <memory>
+#include <GLObjects/CubeMap.h>
 
 class View
 {
@@ -21,6 +22,7 @@ private:
 
     Menu3D mMenu3D;
     glm::vec2 mMousePos;
+    gl::CubeMap mCubeMap;
 public:
     View();
     ~View();

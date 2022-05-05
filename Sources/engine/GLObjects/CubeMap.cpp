@@ -1,94 +1,97 @@
 #include "CubeMap.h"
-#include <stb_image.h>
+#include <Core/Platform.h>
+//#define STB_IMAGE_IMPLEMENTATION
+//#define STBI_WINDOWS_UTF8
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten/wget.h>
+#endif
+
+#include "stb_image.h"
 #include <GLObjects/Shader.h>
 #include <GLObjects/Pipeline.h>
 
 namespace gl
 {
 	static float skyboxVertices[] = {
-		// positions          
-		-1.0f,  1.0f, -1.0f,
+		// positions
+		-1.0f, 1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
 
-		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, 1.0f,
 		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
 
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
 
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
 
-		-1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
 
 		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f
-	};
-
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f};
 
 	CubeMap::CubeMap()
 	{
-		const char* vertShader = GLSL(
+		const char *vertShader = GLSL(
 #ifdef GL_ES
 			\nprecision highp int; \n
-			precision highp float; \n
+				precision highp float; \n
 #endif \n
-			layout(location = 0) in vec3 aPos;
+					layout(location = 0) in vec3 aPos;
 
 			out vec3 TexCoords;
 
 			uniform mat4 projection;
 			uniform mat4 view;
 
-			void main()
-			{
+			void main() {
 				TexCoords = aPos;
-				gl_Position = projection * view * vec4(aPos, 1.0);
-			}
-		);
+				vec4 pos = projection * view * vec4(aPos * 100.0, 1.0);
+				gl_Position = pos.xyww;
+			});
 
 		int vertShSize = strlen(vertShader);
-		const char* fragShader = GLSL(
+		const char *fragShader = GLSL(
 #ifdef GL_ES
 			\nprecision highp int; \n
-			precision highp float; \n
+				precision highp float; \n
 #endif \n
-			out vec4 FragColor;
+					out vec4 FragColor;
 
 			in vec3 TexCoords;
 
 			uniform samplerCube skybox;
 
-			void main()
-			{
+			void main() {
 				FragColor = texture(skybox, TexCoords);
-			}
-		);
+			});
 		int fragShSize = strlen(fragShader);
 
 		gl::Shader<gl::ShaderType::VERTEX> vertSh;
@@ -105,24 +108,24 @@ namespace gl
 		mVBO.AttributesPattern({VertexBuffer::AttribType::POSITION});
 
 		mVAO.LinkVBO(&mProgram, &mVBO);
-
 	}
 
 	CubeMap::~CubeMap()
 	{
-
 	}
 
 	void CubeMap::SetPositiveX(std::string file_name)
 	{
 		int width, height, nrChannels;
 #ifdef __EMSCRIPTEN__
-		unsigned char* file = nullptr;
-		emscripten_wget(file.c_str(), file);
+		const char *file = nullptr;
+		emscripten_wget(file_name.c_str(), file);
+		printf("file: %s\n", file);
 		assert(file && "emscripten not load texture");
-		stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		// unsigned char* data = stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
 #else
-		unsigned char* data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #endif
 		if (data)
 		{
@@ -132,18 +135,19 @@ namespace gl
 			stbi_image_free(data);
 		}
 		assert(data && "stb not load texture");
-
 	}
 	void CubeMap::SetNegativeX(std::string file_name)
 	{
 		int width, height, nrChannels;
 #ifdef __EMSCRIPTEN__
-		unsigned char* file = nullptr;
-		emscripten_wget(file.c_str(), file);
+		const char *file = nullptr;
+		emscripten_wget(file_name.c_str(), file);
+		printf("file: %s\n", file);
 		assert(file && "emscripten not load texture");
-		stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		// unsigned char* data = stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
 #else
-		unsigned char* data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #endif
 		if (data)
 		{
@@ -158,12 +162,14 @@ namespace gl
 	{
 		int width, height, nrChannels;
 #ifdef __EMSCRIPTEN__
-		unsigned char* file = nullptr;
-		emscripten_wget(file.c_str(), file);
+		const char *file = nullptr;
+		emscripten_wget(file_name.c_str(), file);
+		printf("file: %s\n", file);
 		assert(file && "emscripten not load texture");
-		stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
+		// unsigned char* data = stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
 #else
-		unsigned char* data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #endif
 		if (data)
 		{
@@ -178,12 +184,14 @@ namespace gl
 	{
 		int width, height, nrChannels;
 #ifdef __EMSCRIPTEN__
-		unsigned char* file = nullptr;
-		emscripten_wget(file.c_str(), file);
+		const char *file = nullptr;
+		emscripten_wget(file_name.c_str(), file);
+		printf("file: %s\n", file);
 		assert(file && "emscripten not load texture");
-		stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		// unsigned char* data = stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
 #else
-		unsigned char* data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #endif
 		if (data)
 		{
@@ -198,12 +206,14 @@ namespace gl
 	{
 		int width, height, nrChannels;
 #ifdef __EMSCRIPTEN__
-		unsigned char* file = nullptr;
-		emscripten_wget(file.c_str(), file);
+		const char *file = nullptr;
+		emscripten_wget(file_name.c_str(), file);
+		printf("file: %s\n", file);
 		assert(file && "emscripten not load texture");
-		stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		// unsigned char* data = stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
 #else
-		unsigned char* data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #endif
 		if (data)
 		{
@@ -218,12 +228,14 @@ namespace gl
 	{
 		int width, height, nrChannels;
 #ifdef __EMSCRIPTEN__
-		unsigned char* file = nullptr;
-		emscripten_wget(file.c_str(), file);
+		const char *file = nullptr;
+		emscripten_wget(file_name.c_str(), file);
+		printf("file: %s\n", file);
 		assert(file && "emscripten not load texture");
-		stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		// unsigned char* data = stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
 #else
-		unsigned char* data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #endif
 		if (data)
 		{
@@ -235,7 +247,7 @@ namespace gl
 		assert(data && "stb not load texture");
 	}
 
-	void CubeMap::SetSampler(const Sampler& sampler)
+	void CubeMap::SetSampler(const Sampler &sampler)
 	{
 		mSampler = sampler;
 		Bind(mTarget);
@@ -256,24 +268,20 @@ namespace gl
 		UnBind(mTarget);
 	}
 
-
-	void CubeMap::Draw(const glm::mat4& view, const glm::mat4& proj)
+	void CubeMap::Draw(const glm::mat4 &view, const glm::mat4 &proj)
 	{
 		mProgram.Use();
+
 		mProgram.SetMatrix4(mProgram.Uniform("view"), view);
 		mProgram.SetMatrix4(mProgram.Uniform("projection"), proj);
 
 		Pipeline::SetDepthFunc(CompareFunc::LEQUAL);
 
-		// skybox cube
-		/*glBindVertexArray(skyboxVAO);
-		//mVAO.B
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);*/
+		Activate(mTarget, 0);
+		mVAO.Draw(Primitive::TRIANGLES);
 
 		Pipeline::SetDepthFunc(CompareFunc::LESS);
-		
+
+		mProgram.StopUsing();
 	}
 }
