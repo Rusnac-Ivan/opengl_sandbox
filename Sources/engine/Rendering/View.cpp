@@ -313,8 +313,6 @@ void View::OnSceneDraw()
 
     mCubeMap.Draw(mCamera.GetViewMat(), mCamera.GetProjectMat());
 
-    mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
-
     mCamera.Update();
 }
 
