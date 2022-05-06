@@ -9,6 +9,7 @@
 #include <GLObjects/Framebuffer.h>
 #include <Rendering/Menu3D.h>
 #include <memory>
+#include <GLObjects/CubeMap.h>
 
 class View
 {
@@ -26,6 +27,7 @@ private:
     glm::mat4 _projectionMatrices[2];
     glm::mat4 _controllerTransformations[2];
     glm::vec4 _viewports[2];    
+    gl::CubeMap mCubeMap;
 public:
     View();
     ~View();

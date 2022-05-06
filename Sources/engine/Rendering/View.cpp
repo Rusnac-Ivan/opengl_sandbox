@@ -199,6 +199,31 @@ void View::OnInitialize()
 
     mMenu3D.Create(500.f, 700.f);
 
+#ifndef __EMSCRIPTEN__
+    mCubeMap.SetPositiveX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
+    mCubeMap.SetNegativeX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
+    mCubeMap.SetPositiveY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
+    mCubeMap.SetNegativeY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
+    mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
+    mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
+#else
+    mCubeMap.SetPositiveX("/resources/cube_maps/yokohama/posx.jpg");
+    mCubeMap.SetNegativeX("/resources/cube_maps/yokohama/negx.jpg");
+    mCubeMap.SetPositiveY("/resources/cube_maps/yokohama/posy.jpg");
+    mCubeMap.SetNegativeY("/resources/cube_maps/yokohama/negy.jpg");
+    mCubeMap.SetPositiveZ("/resources/cube_maps/yokohama/posz.jpg");
+    mCubeMap.SetNegativeZ("/resources/cube_maps/yokohama/negz.jpg");
+#endif
+
+    gl::CubeMap::Sampler sam;
+    sam.generateMipmaps = true;
+    sam.magFilter = gl::Texture::FilterMode::LINEAR;
+    sam.minFilter = gl::Texture::FilterMode::LINEAR;
+    sam.wrapModeS = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    sam.wrapModeT = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    sam.wrapModeR = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+
+    mCubeMap.SetSampler(sam);
 
 	webxr_init(
 		/* Frame callback */
@@ -280,20 +305,15 @@ void View::OnSceneDraw()
     gl::Pipeline::EnableBlending();
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
 
-    //mProgram->SetMatrix4(mProgram->Uniform("model"), model);
-    //mMenuColor->Bind();
-    //mMenuVAO.Draw(gl::Primitive::TRIANGLES);
-
     //mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat()*this->_viewMatrices[0]);
     mMenu3D.RenderOut(this->_projectionMatrices[0] * mCamera.GetViewMat()*this->_viewMatrices[0]);
-
-    //mBishopVAO->Draw(gl::Primitive::TRIANGLES);
-
-    //mModel.draw(mProgram.get());
-    //mProgram->SetMatrix4(mProgram->Uniform("model"), model2);
-    //mKnightVAO->Draw(gl::Primitive::TRIANGLES);
+    //mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
 
     mProgram->StopUsing();
+
+    mCubeMap.Draw(mCamera.GetViewMat(), mCamera.GetProjectMat());
+
+    mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
 
     mCamera.Update();
 }

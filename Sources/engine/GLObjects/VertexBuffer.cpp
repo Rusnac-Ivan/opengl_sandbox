@@ -50,6 +50,7 @@ namespace gl
 
 	void VertexBuffer::Data(unsigned int vertex_count, unsigned int size, const void* data, UsageMode accessFreq)
 	{
+		mVertexCount = vertex_count;
 		this->Bind();
 		Buffer::Data(size, data, accessFreq);
 		this->UnBind();
