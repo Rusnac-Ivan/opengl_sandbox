@@ -1,6 +1,8 @@
 #include "Window.h"
 #include <Rendering/imgui_impl_3d_to_2d.h>
-#include "webxr.h"
+#ifdef __EMSCRIPTEN__
+	#include "webxr.h"
+#endif
 
 static void glfw_error_callback(int error, const char* description)
 {

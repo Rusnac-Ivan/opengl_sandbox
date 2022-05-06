@@ -55,6 +55,7 @@ namespace gl
 		void SetPositiveZ(std::string file_name);
 		void SetNegativeZ(std::string file_name);
 
+
 		void SetSampler(const Sampler& sampler);
 
 		void Draw(const glm::mat4& view, const glm::mat4& proj);

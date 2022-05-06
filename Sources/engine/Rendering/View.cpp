@@ -9,7 +9,9 @@
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
-#include "webxr.h"
+#ifdef __EMSCRIPTEN__
+    #include "webxr.h"
+#endif
 #include <glm/gtc/type_ptr.hpp>
 
 //https://github.com/KhronosGroup/glTF
@@ -207,35 +209,26 @@ void View::OnInitialize()
     mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
     mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 #else
-    mCubeMap.SetPositiveX("/resources/cube_maps/yokohama/posx.jpg");
-    mCubeMap.SetNegativeX("/resources/cube_maps/yokohama/negx.jpg");
-    mCubeMap.SetPositiveY("/resources/cube_maps/yokohama/posy.jpg");
-    mCubeMap.SetNegativeY("/resources/cube_maps/yokohama/negy.jpg");
-    mCubeMap.SetPositiveZ("/resources/cube_maps/yokohama/posz.jpg");
-    mCubeMap.SetNegativeZ("/resources/cube_maps/yokohama/negz.jpg");
-#endif
+    mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
+    mCubeMap.SetNegativeX("./resources/cube_maps/yokohama/negx.jpg");
+    mCubeMap.SetPositiveY("./resources/cube_maps/yokohama/posy.jpg");
+    mCubeMap.SetNegativeY("./resources/cube_maps/yokohama/negy.jpg");
+    mCubeMap.SetPositiveZ("./resources/cube_maps/yokohama/posz.jpg");
+    mCubeMap.SetNegativeZ("./resources/cube_maps/yokohama/negz.jpg");
 
-    gl::CubeMap::Sampler sam;
-    sam.generateMipmaps = true;
-    sam.magFilter = gl::Texture::FilterMode::LINEAR;
-    sam.minFilter = gl::Texture::FilterMode::LINEAR;
-    sam.wrapModeS = gl::Texture::WrapMode::CLAMP_TO_EDGE;
-    sam.wrapModeT = gl::Texture::WrapMode::CLAMP_TO_EDGE;
-    sam.wrapModeR = gl::Texture::WrapMode::CLAMP_TO_EDGE;
 
-    mCubeMap.SetSampler(sam);
 
-	webxr_init(
-		/* Frame callback */
-		[](void* userData, int time, WebXRRigidTransform* headPose, WebXRView views[2], int viewCount) {
-			printf("webxr_init: Frame callback\n");
+    webxr_init(
+        /* Frame callback */
+        [](void* userData, int time, WebXRRigidTransform* headPose, WebXRView views[2], int viewCount) {
+            printf("webxr_init: Frame callback\n");
 
             View* thiz = (View*)userData;
 
             int viewIndex = 0;
-            for(WebXRView view : {views[0], views[1]})
+            for (WebXRView view : {views[0], views[1]})
             {
-                thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
+                thiz->_viewports[viewIndex] = { view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3] };
 
                 thiz->_viewMatrices[viewIndex] = glm::make_mat4(view.viewPose.matrix);
 
@@ -250,30 +243,43 @@ void View::OnInitialize()
             int sourcesCount = 0;
             webxr_get_input_sources(sources, 2, &sourcesCount);
 
-            for(int i = 0; i < sourcesCount; ++i)
+            for (int i = 0; i < sourcesCount; ++i)
             {
                 //webxr_get_input_pose(&sources[i], _controllerTransformations[i].data());
             }
 
             ((View*)userData)->OnSceneDraw();
             ((View*)userData)->OnGUIDraw();
-		},
-		/* Session start callback */
-		[](void* userData, int mode) {
-			printf("webxr_init: Session start callback\n");
-		},
-		/* Session end callback */
-		[](void* userData, int mode) {
-			printf("webxr_init: Session end callback\n");
-		},
-		/* Error callback */
-		[](void* userData, int error) {
-			printf("webxr_init: Errord callback\n");
-		},
-		/* userData */
-		this);
+        },
+        /* Session start callback */
+            [](void* userData, int mode) {
+            printf("webxr_init: Session start callback\n");
+        },
+            /* Session end callback */
+            [](void* userData, int mode) {
+            printf("webxr_init: Session end callback\n");
+        },
+            /* Error callback */
+            [](void* userData, int error) {
+            printf("webxr_init: Errord callback\n");
+        },
+            /* userData */
+            this);
 
     webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
+#endif
+
+    gl::CubeMap::Sampler sam;
+    sam.generateMipmaps = true;
+    sam.magFilter = gl::Texture::FilterMode::LINEAR;
+    sam.minFilter = gl::Texture::FilterMode::LINEAR;
+    sam.wrapModeS = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    sam.wrapModeT = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+    sam.wrapModeR = gl::Texture::WrapMode::CLAMP_TO_EDGE;
+
+    mCubeMap.SetSampler(sam);
+
+	
 }
 
 

@@ -10,6 +10,7 @@
 #include "stb_image.h"
 #include <GLObjects/Shader.h>
 #include <GLObjects/Pipeline.h>
+#include <functional>
 
 namespace gl
 {
@@ -113,22 +114,49 @@ namespace gl
 	CubeMap::~CubeMap()
 	{
 	}
+	em_async_wget_onload_func OnLoad()
+	{
 
+	}
 	void CubeMap::SetPositiveX(std::string file_name)
 	{
 		int width, height, nrChannels;
 #ifdef __EMSCRIPTEN__
+
+		EM_ASM(
+			FS.mkdir('/resources');
+			FS.mount(NODEFS, { root: '.' }, '/resources');
+		);
+
 		const char *file = nullptr;
-		emscripten_wget(file_name.c_str(), file);
-		printf("file: %s\n", file);
-		assert(file && "emscripten not load texture");
+		//emscripten_wget(file_name.c_str(), file);
+		
+		/*emscripten_async_wget_data(file_name.c_str(), NULL, [](void *arg, void *data, int size){
+			int width, height, nrChannels;
+			unsigned char *data = stbi_load_from_memory((unsigned char*)data, size, &width, &height, &nrChannels, 0);
+			//unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
+			if (data)
+			{
+				Bind(mTarget);
+				GL(TexImage2D(Target::POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
+				UnBind(mTarget);
+				stbi_image_free(data);
+			}
+			assert(data && "stb not load texture");
+
+		}, [](void *arg){
+
+		});*/
+		printf("file: %s\n", file_name.c_str());
+		//assert(file && "emscripten not load texture");
 		// unsigned char* data = stbi_load_from_memory(file, &width, &height, &nrChannels, 0);
-		unsigned char *data = stbi_load(file, &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #else
 		unsigned char *data = stbi_load(file_name.c_str(), &width, &height, &nrChannels, 0);
 #endif
 		if (data)
 		{
+			printf("data: %p\n", data);
 			Bind(mTarget);
 			GL(TexImage2D(Target::POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
 			UnBind(mTarget);
