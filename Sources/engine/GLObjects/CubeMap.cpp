@@ -136,6 +136,7 @@ namespace gl
 		}
 		assert(data && "stb not load texture");
 	}
+	
 	void CubeMap::SetNegativeX(std::string file_name)
 	{
 		int width, height, nrChannels;
