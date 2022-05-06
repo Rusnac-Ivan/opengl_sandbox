@@ -1,5 +1,6 @@
 #include "Window.h"
 #include <Rendering/imgui_impl_3d_to_2d.h>
+#include "webxr.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -80,6 +81,15 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	}
 
 	printf("GLFWwindow*: %p\n", mGLFWWindow);
+
+	webxr_is_session_supported(WEBXR_SESSION_MODE_IMMERSIVE_VR, [](int mode, int supported)
+	{
+		printf("mode: %d, supported: %d\n", mode, supported);
+		if ((mode == WEBXR_SESSION_MODE_IMMERSIVE_VR) && (supported))
+		{
+			//webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
+		}
+	});
 #else
 	mGLFWWindow = glfwCreateWindow(mWidth, mHeight, windowName, nullptr, nullptr);
 #endif

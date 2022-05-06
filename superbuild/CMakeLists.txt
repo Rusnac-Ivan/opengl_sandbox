@@ -44,35 +44,33 @@ if(NOT DEFINED EMSCRIPTEN)
         UPDATE_COMMAND          ""
         BUILD_ALWAYS            FALSE
     )
-
-    ExternalProject_Add(imgui
-        PREFIX                  ${LIBRARIES_PREFIX}/imgui
-        DEPENDS                 glfw
-        GIT_REPOSITORY          https://github.com/ocornut/imgui.git
-        GIT_TAG                 v1.84
-        UPDATE_DISCONNECTED     TRUE
-        UPDATE_COMMAND          ""
-        CONFIGURE_COMMAND       ""
-        BUILD_COMMAND           ""
-        INSTALL_COMMAND         ""
-    )
-    ExternalProject_Get_property(imgui SOURCE_DIR)
-    set(IMGUI_SOURCE_DIR ${SOURCE_DIR})
 else()
-    ExternalProject_Add(imgui
-        PREFIX                  ${LIBRARIES_PREFIX}/imgui
-        GIT_REPOSITORY          https://github.com/ocornut/imgui.git
-        GIT_TAG                 v1.84
+    ExternalProject_Add(emscripten-webxr
+        PREFIX                  ${LIBRARIES_PREFIX}/emscripten-webxr
+        GIT_REPOSITORY          https://github.com/WonderlandEngine/emscripten-webxr.git
         UPDATE_DISCONNECTED     TRUE
         UPDATE_COMMAND          ""
         CONFIGURE_COMMAND       ""
         BUILD_COMMAND           ""
         INSTALL_COMMAND         ""
     )
-    ExternalProject_Get_property(imgui SOURCE_DIR)
-    set(IMGUI_SOURCE_DIR ${SOURCE_DIR})
+    ExternalProject_Get_property(emscripten-webxr SOURCE_DIR)
+    set(EMSCRIPTEN_WEBXR_DIR ${SOURCE_DIR})
 endif()
 
+
+ExternalProject_Add(imgui
+    PREFIX                  ${LIBRARIES_PREFIX}/imgui
+    GIT_REPOSITORY          https://github.com/ocornut/imgui.git
+    GIT_TAG                 v1.84
+    UPDATE_DISCONNECTED     TRUE
+    UPDATE_COMMAND          ""
+    CONFIGURE_COMMAND       ""
+    BUILD_COMMAND           ""
+    INSTALL_COMMAND         ""
+)
+ExternalProject_Get_property(imgui SOURCE_DIR)
+set(IMGUI_SOURCE_DIR ${SOURCE_DIR})
 
 
 ExternalProject_Add(glm
@@ -155,7 +153,8 @@ else()
                             -Dglm_DIR:PATH=${LIBRARIES_INSTALL_PREFIX}/glm/lib/cmake/glm
                             -DCMAKE_PREFIX_PATH:STRING=${INSTALLATION_PREFIXES_LIST}
                             -DTINYGLTF_PATH:PATH=${TINYGLTF_SOURCE_DIR}
-                            
+                            -DEMSCRIPTEN_WEBXR_PATH:PATH=${EMSCRIPTEN_WEBXR_DIR}
+
         BUILD_ALWAYS        TRUE
         INSTALL_COMMAND     ""
     )

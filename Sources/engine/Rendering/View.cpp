@@ -9,11 +9,10 @@
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#include "webxr.h"
+#include <glm/gtc/type_ptr.hpp>
 
 //https://github.com/KhronosGroup/glTF
-
-
-
 
 
 float vertices[] = {
@@ -226,6 +225,55 @@ void View::OnInitialize()
 
     mCubeMap.SetSampler(sam);
 
+	webxr_init(
+		/* Frame callback */
+		[](void* userData, int time, WebXRRigidTransform* headPose, WebXRView views[2], int viewCount) {
+			printf("webxr_init: Frame callback\n");
+
+            View* thiz = (View*)userData;
+
+            int viewIndex = 0;
+            for(WebXRView view : {views[0], views[1]})
+            {
+                thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
+
+                thiz->_viewMatrices[viewIndex] = glm::make_mat4(view.viewPose.matrix);
+
+                thiz->_projectionMatrices[viewIndex] = glm::make_mat4(view.projectionMatrix);
+
+                //printf("{x:%d, y:%d, w:%d, h:%d}\n", view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]);
+
+                ++viewIndex;
+            }
+
+            WebXRInputSource sources[2];
+            int sourcesCount = 0;
+            webxr_get_input_sources(sources, 2, &sourcesCount);
+
+            for(int i = 0; i < sourcesCount; ++i)
+            {
+                //webxr_get_input_pose(&sources[i], _controllerTransformations[i].data());
+            }
+
+            ((View*)userData)->OnSceneDraw();
+            ((View*)userData)->OnGUIDraw();
+		},
+		/* Session start callback */
+		[](void* userData, int mode) {
+			printf("webxr_init: Session start callback\n");
+		},
+		/* Session end callback */
+		[](void* userData, int mode) {
+			printf("webxr_init: Session end callback\n");
+		},
+		/* Error callback */
+		[](void* userData, int error) {
+			printf("webxr_init: Errord callback\n");
+		},
+		/* userData */
+		this);
+
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
 }
 
 
@@ -249,23 +297,17 @@ void View::OnSceneDraw()
 
     //glm::mat4 model1 = glm::scale(model, glm::vec3(1.f, 5.f, 5.f));
 
-    mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
+    //mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
+    mProgram->SetMatrix4(mProgram->Uniform("view"), this->_viewMatrices[0]);
 
-    
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
+
     gl::Pipeline::EnableBlending();
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
 
-    //mProgram->SetMatrix4(mProgram->Uniform("model"), model);
-    //mMenuColor->Bind();
-    //mMenuVAO.Draw(gl::Primitive::TRIANGLES);
-
+    //mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat()*this->_viewMatrices[0]);
+    mMenu3D.RenderOut(this->_projectionMatrices[0] * mCamera.GetViewMat()*this->_viewMatrices[0]);
     //mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
-
-    //mBishopVAO->Draw(gl::Primitive::TRIANGLES);
-
-    //mModel.draw(mProgram.get());
-    //mProgram->SetMatrix4(mProgram->Uniform("model"), model2);
-    //mKnightVAO->Draw(gl::Primitive::TRIANGLES);
 
     mProgram->StopUsing();
 
@@ -275,6 +317,7 @@ void View::OnSceneDraw()
 
     mCamera.Update();
 }
+
 void View::OnGUIDraw()
 {
     /* {
@@ -313,24 +356,30 @@ void View::OnMouseLeftDown(double x, double y)
 {
     mCamera.BeginDrag((float)x, (float)y);
 }
+
 void View::OnMouseLeftUp(double x, double y)
 {
     mCamera.EndDrag();
 }
+
 void View::OnMouseRightDown(double x, double y)
 {
     mCamera.BeginPitch((float)x, (float)y);
 }
+
 void View::OnMouseRightUp(double x, double y)
 {
     mCamera.EndPitch();
 }
+
 void View::OnMouseMiddleDown(double x, double y)
 {
 }
+
 void View::OnMouseMiddleUp(double x, double y)
 {
 }
+
 void View::OnMouseMove(double x, double y)
 {
     mMousePos = glm::vec2(x, y);
@@ -341,6 +390,7 @@ void View::OnMouseMove(double x, double y)
     mCamera.Drag((float)x, (float)y);
     mCamera.Pitch((float)x, (float)y);
 }
+
 void View::OnMouseWhell(double offset)
 {
     mCamera.Wheel(offset);
@@ -363,6 +413,7 @@ void View::OnResize(int width, int height)
     gl::RenderContext::SetViewport(width, height);
     mCamera.Resize(glm::vec2(width, height));
     mProgram->Use();
-    mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    //mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
     mProgram->StopUsing();
 }
