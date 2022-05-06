@@ -10,6 +10,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 #include "webxr.h"
+#include <glm/gtc/type_ptr.hpp>
 
 //https://github.com/KhronosGroup/glTF
 
@@ -204,21 +205,18 @@ void View::OnInitialize()
 		[](void* userData, int time, WebXRRigidTransform* headPose, WebXRView views[2], int viewCount) {
 			printf("webxr_init: Frame callback\n");
 
-            glm::mat4 _viewMatrices[2];
-            glm::mat4 _projectionMatrices[2];
-            glm::mat4 _controllerTransformations[2];
-            glm::vec2 _viewports[2];
+            View* thiz = (View*)userData;
 
             int viewIndex = 0;
             for(WebXRView view : {views[0], views[1]})
             {
-                /*_viewports[viewIndex] = Range2Di::fromSize(
-                    {view.viewport[0], view.viewport[1]},
-                    {view.viewport[2], view.viewport[3]});
+                thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
 
-                _viewMatrices[viewIndex] = Matrix4::from(view.viewMatrix);
+                thiz->_viewMatrices[viewIndex] = glm::make_mat4(view.viewPose.matrix);
 
-                _projectionMatrices[viewIndex] = Matrix4::from(view.projectionMatrix);*/
+                thiz->_projectionMatrices[viewIndex] = glm::make_mat4(view.projectionMatrix);
+
+                //printf("{x:%d, y:%d, w:%d, h:%d}\n", view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]);
 
                 ++viewIndex;
             }
@@ -274,9 +272,11 @@ void View::OnSceneDraw()
 
     //glm::mat4 model1 = glm::scale(model, glm::vec3(1.f, 5.f, 5.f));
 
-    mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
+    //mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
+    mProgram->SetMatrix4(mProgram->Uniform("view"), this->_viewMatrices[0]);
 
-    
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
+
     gl::Pipeline::EnableBlending();
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
 
@@ -284,7 +284,8 @@ void View::OnSceneDraw()
     //mMenuColor->Bind();
     //mMenuVAO.Draw(gl::Primitive::TRIANGLES);
 
-    mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
+    //mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat()*this->_viewMatrices[0]);
+    mMenu3D.RenderOut(this->_projectionMatrices[0] * mCamera.GetViewMat()*this->_viewMatrices[0]);
 
     //mBishopVAO->Draw(gl::Primitive::TRIANGLES);
 
@@ -392,6 +393,7 @@ void View::OnResize(int width, int height)
     gl::RenderContext::SetViewport(width, height);
     mCamera.Resize(glm::vec2(width, height));
     mProgram->Use();
-    mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    //mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
     mProgram->StopUsing();
 }

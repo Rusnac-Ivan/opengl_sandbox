@@ -21,6 +21,11 @@ private:
 
     Menu3D mMenu3D;
     glm::vec2 mMousePos;
+
+    glm::mat4 _viewMatrices[2];
+    glm::mat4 _projectionMatrices[2];
+    glm::mat4 _controllerTransformations[2];
+    glm::vec4 _viewports[2];    
 public:
     View();
     ~View();
