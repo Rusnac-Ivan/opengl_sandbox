@@ -26,12 +26,13 @@ private:
     glm::mat4 _viewMatrices[2];
     glm::mat4 _projectionMatrices[2];
     glm::mat4 _controllerTransformations[2];
-    glm::vec4 _viewports[2];    
+    glm::vec4 _viewports[2];
+    glm::vec3 _controllerPos;
     gl::CubeMap mCubeMap;
+
 public:
     View();
     ~View();
-    
 
     void OnInitialize();
     void OnSceneDraw();
@@ -55,8 +56,8 @@ public:
 
     void OnCreate(int width, int height);
     void OnDestroy();
+
 private:
-    
 };
 
 #endif

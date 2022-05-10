@@ -8,9 +8,9 @@ if(NOT DEFINED EMSCRIPTEN)
 endif()
 
 # Set src and include root path
-set(SRC_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sources/")
+set(SRC_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/")
 # Set src and include root path
-set(LIBS_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/libraries/")
+set(LIBS_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
 #set(RESOURCES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 #message(STATUS "RESOURCES_PATH : ${RESOURCES_PATH}")
@@ -22,7 +22,7 @@ message(STATUS "RESOURCES_ABSOLUTE_PATH : ${RESOURCES_ABSOLUTE_PATH}")
 foreach(absolute_file_path  ${RESOURCES_ABSOLUTE_PATH})
     #message(STATUS "absolute_file_path : ${absolute_file_path}")
     #file(RELATIVE_PATH FILE_RELATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${absolute_file_path})
-    set(RESOURCES_RELATIVE_PATH "${RESOURCES_RELATIVE_PATH} ${absolute_file_path}")
+    set(RESOURCES_RELATIVE_PATH "${RESOURCES_RELATIVE_PATH} ${absolute_file_path} ")
 endforeach()
 
 message(STATUS "RESOURCES_RELATIVE_PATH : ${RESOURCES_RELATIVE_PATH}")
@@ -68,11 +68,37 @@ set(GLAD_INCLUDE_DIR "${LIBS_ROOT_PATH}/glad-0.1.34/include")
 if(DEFINED EMSCRIPTEN)
     if (CMAKE_BUILD_TYPE MATCHES Debug)	
         #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1 -s USE_WEBGL2=1  -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s ASSERTIONS=2 --bind -s WASM=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s TOTAL_MEMORY=1GB --preload-file ${RESOURCES_RELATIVE_PATH}")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1 -s USE_WEBGL2=1 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s ASSERTIONS=2 --bind -s WASM=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s TOTAL_MEMORY=1GB -s ENVIRONMENT='node' -s NODERAWFS=1")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} 
+            -s NO_EXIT_RUNTIME=1 
+            -s USE_WEBGL2=1 
+            -s USE_GLFW=3 
+            -s DEMANGLE_SUPPORT=1 
+            -s ASSERTIONS=2 
+            --bind 
+            -s WASM=1 
+            -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 
+            -s TOTAL_MEMORY=1GB 
+            -s ALLOW_MEMORY_GROWTH=1 
+
+            -s ASYNCIFY 
+            -lnodefs.js 
+        ")
     else()
-        add_definitions(-DNDEBUG)#-s ASYNCIFY
+        add_definitions(-DNDEBUG)#-s ASYNCIFY --preload-file ${RESOURCES_RELATIVE_PATH}
         #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1 -s USE_WEBGL2=1 -s USE_GLFW=3 --bind -s WASM=1 -s INITIAL_MEMORY=1GB -s MAXIMUM_MEMORY=3GB -s ALLOW_MEMORY_GROWTH=1 --preload-file ${RESOURCES_RELATIVE_PATH}")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s NO_EXIT_RUNTIME=1 -s USE_WEBGL2=1  -s USE_GLFW=3 --bind -s WASM=1 -s INITIAL_MEMORY=1GB -s MAXIMUM_MEMORY=3GB -s ALLOW_MEMORY_GROWTH=1 -s ENVIRONMENT='node' -s NODERAWFS=1")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} 
+            -s NO_EXIT_RUNTIME=1 
+            -s USE_WEBGL2=1  
+            -s USE_GLFW=3 
+            --bind 
+            -s WASM=1 
+            -s INITIAL_MEMORY=1GB 
+            -s MAXIMUM_MEMORY=3GB 
+            -s ALLOW_MEMORY_GROWTH=1 
+
+            -s ASYNCIFY 
+            -lnodefs.js 
+        ")
     endif()
 endif()
 
