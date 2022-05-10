@@ -149,11 +149,46 @@ if(IMGUI_PATH)
             ${IMGUI_PATH}/backends/imgui_impl_glfw.h
     )
     
+    foreach(_source IN ITEMS ${IMGUI_SRC})
+        get_filename_component(_source_path "${_source}" PATH)
+        file(RELATIVE_PATH _source_path_rel "${IMGUI_PATH}" "${_source_path}")
+        string(REPLACE "/" "\\" _group_path "${_source_path_rel}")
+        source_group("source\\imgui\\${_group_path}" FILES "${_source}")
+    endforeach()
+
     message(STATUS "IMGUI_SRC: ${IMGUI_SRC}")
     target_sources(${PROJECT_NAME} PRIVATE ${IMGUI_SRC})
     target_include_directories(${PROJECT_NAME} PRIVATE ${IMGUI_PATH})
 else()
     message(FATAL_ERROR "IMGUI_PATH is not set!")
+endif()
+
+if(IMGUIZMO_PATH)
+    set(IMGUIZMO_SRC 
+            ${IMGUIZMO_PATH}/GraphEditor.h
+            ${IMGUIZMO_PATH}/GraphEditor.cpp
+            ${IMGUIZMO_PATH}/ImCurveEdit.h
+            ${IMGUIZMO_PATH}/ImCurveEdit.cpp
+            ${IMGUIZMO_PATH}/ImGradient.h
+            ${IMGUIZMO_PATH}/ImGradient.cpp
+            ${IMGUIZMO_PATH}/ImGuizmo.h
+            ${IMGUIZMO_PATH}/ImGuizmo.cpp
+            ${IMGUIZMO_PATH}/ImSequencer.h
+            ${IMGUIZMO_PATH}/ImSequencer.cpp
+            ${IMGUIZMO_PATH}/ImZoomSlider.h
+    )
+    
+    foreach(_source IN ITEMS ${IMGUIZMO_SRC})
+        get_filename_component(_source_path "${_source}" PATH)
+        file(RELATIVE_PATH _source_path_rel "${IMGUIZMO_PATH}" "${_source_path}")
+        string(REPLACE "/" "\\" _group_path "${_source_path_rel}")
+        source_group("source\\imguizmo\\${_group_path}" FILES "${_source}")
+    endforeach()
+
+    target_sources(${PROJECT_NAME} PRIVATE ${IMGUIZMO_SRC})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${IMGUIZMO_PATH})
+else()
+    message(FATAL_ERROR "IMGUIZMO_PATH is not set!")
 endif()
 
 if(EMSCRIPTEN_WEBXR_PATH)

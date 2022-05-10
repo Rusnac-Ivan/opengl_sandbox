@@ -10,6 +10,7 @@
 #include <Rendering/Menu3D.h>
 #include <memory>
 #include <GLObjects/CubeMap.h>
+#include <glm/gtx/quaternion.hpp>
 
 class View
 {
@@ -27,8 +28,13 @@ private:
     glm::mat4 _projectionMatrices[2];
     glm::mat4 _controllerTransformations[2];
     glm::vec4 _viewports[2];
+    glm::vec3 _headPos;
     glm::vec3 _controllerPos;
+    glm::vec3 _controllerDir;
+    glm::quat _controlleOrientation;
     gl::CubeMap mCubeMap;
+
+    std::vector<float> mFrames;
 
 public:
     View();

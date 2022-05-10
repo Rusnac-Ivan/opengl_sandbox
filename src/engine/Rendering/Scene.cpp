@@ -258,7 +258,7 @@ namespace Scene
 			scale = glm::make_vec3(node.scale.data());
 			newNode->scale = scale;
 		}
-		if (node.matrix.size() == 16) 
+		/*if (node.matrix.size() == 16)
 		{
 			newNode->matrix = glm::make_mat4x4(node.matrix.data());
 		}
@@ -269,7 +269,7 @@ namespace Scene
 			newNode->matrix = glm::translate(newNode->matrix, newNode->translation);
 
 			//newNode->matrix = newNode->translation 
-		}
+		}*/
 
 
 
@@ -655,6 +655,7 @@ namespace Scene
 
 	void Model::draw(gl::Program* program)
 	{
+		program->Use();
 		for (auto& node : nodes) {
 			program->SetMatrix4(program->Uniform("model"), node->getMatrix());
 			drawNode(program, node);

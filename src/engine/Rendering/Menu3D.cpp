@@ -85,6 +85,7 @@ void Menu3D::Initialize()
          in vec3 Pos;
 
          void main() {
+
              if (dot(Pos - FragPos, Pos - FragPos) < 0.0001)
                  FragColor = vec4(1.0, 1.0, 1.0, 1.0);
              else
@@ -92,6 +93,7 @@ void Menu3D::Initialize()
                  vec4 base_col = texture(uBaseColor, UV0);
                  FragColor = vec4(base_col.rgb, base_col.a);
              }
+
          });
     int fragShSize = strlen(fragShader);
 
@@ -111,22 +113,22 @@ void Menu3D::Create(float width, float height)
     mWidth = width;
     mHeight = height;
 
-    float quad_width = 1.f;
+    float quad_width = 1.5f;
     float quad_height = quad_width * (mHeight / mWidth);
     float quadW_half = quad_width / 2.f;
     float quadH_half = quad_height / 2.f;
 
     float QuadVert[] =
         {
-            -quadW_half, -quadH_half, -1.0f, 0.f, 0.f,
-            -quadW_half, quadH_half, -1.0f, 0.f, 1.f,
-            quadW_half, quadH_half, -1.0f, 1.f, 1.f,
-            quadW_half, -quadH_half, -1.0f, 1.f, 0.f};
+            -quadW_half, -quadH_half, -1.5f, 0.f, 0.f,
+            -quadW_half, quadH_half, -1.5f, 0.f, 1.f,
+            quadW_half, quadH_half, -1.5f, 1.f, 1.f,
+            quadW_half, -quadH_half, -1.5f, 1.f, 0.f};
 
-    mVertices[0] = glm::vec3(-quadW_half, -quadH_half, 0.0f);
-    mVertices[1] = glm::vec3(-quadW_half, quadH_half, 0.0f);
-    mVertices[2] = glm::vec3(quadW_half, quadH_half, 0.0f);
-    mVertices[3] = glm::vec3(quadW_half, -quadH_half, 0.0f);
+    mVertices[0] = glm::vec3(QuadVert[0], QuadVert[1], QuadVert[2]);
+    mVertices[1] = glm::vec3(QuadVert[5], QuadVert[6], QuadVert[7]);
+    mVertices[2] = glm::vec3(QuadVert[10], QuadVert[11], QuadVert[12]);
+    mVertices[3] = glm::vec3(QuadVert[15], QuadVert[16], QuadVert[17]);
 
     uint32_t QuadIdx[] =
         {
@@ -175,8 +177,11 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
 }
 
 static glm::vec3 Point = {};
-
-void Menu3D::RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4 &view, const glm::mat4 &proj)
+#ifndef __EMSCRIPTEN__
+    void Menu3D::RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4 &view, const glm::mat4 &proj)
+#else
+    void Menu3D::RenderIn(glm::vec3 controllerPos, glm::vec3 controllerDir, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj)
+#endif
 {
     // mouse_pos = glm::vec2(window_size / 2.f);
 
@@ -189,19 +194,21 @@ void Menu3D::RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_s
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     // ImGui_ImplGlfw_NewFrame();
-
+#ifndef __EMSCRIPTEN__
     glm::vec3 ray = glm::normalize(CreateRay(mouse_pos, window_size, view, proj) - cam_pos);
+    glm::vec3 controllerPos = cam_pos;
+#else
+    glm::vec3 ray = glm::normalize(controllerDir);
+#endif
     float distance = 0.f;
 
     glm::vec2 new_mouse_pos = glm::vec2(window_size.x, 0.f);
-    if (glm::intersectRayPlane(cam_pos, ray, mVertices[0], glm::vec3(0.f, 0.f, 1.f), distance))
+    if (glm::intersectRayPlane(controllerPos, ray, mVertices[0], glm::vec3(0.f, 0.f, 1.f), distance))
     {
         int a = 0;
-        glm::vec3 P1 = cam_pos + ray * distance;
+        glm::vec3 P1 = controllerPos + ray * distance;
 
         Point = P1;
-
-        // P1 = mVertices[2];
 
         glm::vec3 Vx = glm::normalize(mVertices[3] - mVertices[0]);
         glm::vec3 Vy = glm::normalize(mVertices[1] - mVertices[0]);

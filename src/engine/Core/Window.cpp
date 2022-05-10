@@ -236,7 +236,7 @@ void Window::OnRender()
 
 	mView->OnGUIDraw();
 	std::string info(std::to_string(ImGui::GetIO().MousePos.x) + ", " + std::to_string(ImGui::GetIO().MousePos.y));
-	glfwSetWindowTitle(mGLFWWindow, info.c_str());
+	//glfwSetWindowTitle(mGLFWWindow, info.c_str());
 
 	// Rendering
 	//ImGui::Render();

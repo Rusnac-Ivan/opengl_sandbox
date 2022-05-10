@@ -72,6 +72,25 @@ ExternalProject_Add(imgui
 ExternalProject_Get_property(imgui SOURCE_DIR)
 set(IMGUI_SOURCE_DIR ${SOURCE_DIR})
 
+ExternalProject_Add(imguizmo
+    PREFIX                  ${LIBRARIES_PREFIX}/imguizmo
+    DEPENDS                 imgui
+    GIT_REPOSITORY          https://github.com/CedricGuillemet/ImGuizmo.git
+    GIT_TAG                 1.83
+    UPDATE_DISCONNECTED     TRUE
+    UPDATE_COMMAND          ""
+    CONFIGURE_COMMAND       ""
+    BUILD_COMMAND           ""
+    INSTALL_COMMAND         ""
+)
+ExternalProject_Add_Step(imguizmo replace_imguizmo_cpp
+    DEPENDEES download
+    DEPENDERS configure
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/patches/imguizmo/ImGuizmo.cpp ${LIBRARIES_PREFIX}/imguizmo/src/imguizmo/ImGuizmo.cpp
+)
+ExternalProject_Get_property(imguizmo SOURCE_DIR)
+set(IMGUIZMO_SOURCE_DIR ${SOURCE_DIR})
+
 
 ExternalProject_Add(glm
     PREFIX                  ${LIBRARIES_PREFIX}/glm
@@ -136,7 +155,7 @@ if(NOT DEFINED EMSCRIPTEN)
                             -Dglm_DIR:PATH=${LIBRARIES_INSTALL_PREFIX}/glm/lib/cmake/glm
                             -DCMAKE_PREFIX_PATH:STRING=${INSTALLATION_PREFIXES_LIST}
                             -DTINYGLTF_PATH:PATH=${TINYGLTF_SOURCE_DIR}
-                            
+                            -DIMGUIZMO_PATH:PATH=${IMGUIZMO_SOURCE_DIR}                            
         BUILD_ALWAYS        TRUE
         INSTALL_COMMAND     ""
     )
@@ -154,6 +173,7 @@ else()
                             -DCMAKE_PREFIX_PATH:STRING=${INSTALLATION_PREFIXES_LIST}
                             -DTINYGLTF_PATH:PATH=${TINYGLTF_SOURCE_DIR}
                             -DEMSCRIPTEN_WEBXR_PATH:PATH=${EMSCRIPTEN_WEBXR_DIR}
+                            -DIMGUIZMO_PATH:PATH=${IMGUIZMO_SOURCE_DIR}
 
         BUILD_ALWAYS        TRUE
         INSTALL_COMMAND     ""
