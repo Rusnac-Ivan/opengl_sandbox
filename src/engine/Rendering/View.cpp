@@ -28,7 +28,8 @@ unsigned int indices[] = {
     0, 2, 3  // second Triangle
 };
 
-Scene::Model mController;
+Scene::Model mRightController;
+//Scene::Model mLeftController;
 
 View::View()
 {
@@ -224,7 +225,8 @@ void View::OnInitialize()
     mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
     mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\controller.glb");
+    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\controller.glb");
+    //mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
     mCubeMap.SetNegativeX("./resources/cube_maps/yokohama/negx.jpg");
@@ -233,7 +235,7 @@ void View::OnInitialize()
     mCubeMap.SetPositiveZ("./resources/cube_maps/yokohama/posz.jpg");
     mCubeMap.SetNegativeZ("./resources/cube_maps/yokohama/negz.jpg");
 
-    mController.loadFromFile("./resources/models/controller/controller.glb");
+    mRightController.loadFromFile("./resources/models/controllers/base/controller.glb");
 
     webxr_init(
         /* Frame callback */
@@ -258,7 +260,7 @@ void View::OnInitialize()
             }
             if (headPose)
             {
-                _headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
+                thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
                 //thiz->_controlleOrientation = glm::quat(headPose->orientation[0], headPose->orientation[1], headPose->orientation[2], headPose->orientation[3]);
                 //thiz->_controllerDir = glm::mat3_cast(thiz->_controlleOrientation) * glm::vec3(0.f, 0.f, -1.f);
             }
@@ -273,9 +275,10 @@ void View::OnInitialize()
             {   
                 webxr_get_input_pose(sources + i, controllersPose + i);
                 //printf("WebXRInputSource id: %d, WebXRHandedness: %d, WebXRTargetRayMode: %d\n", sources[i].id, sources[i].handedness, sources[i].targetRayMode);
-                thiz->_controllerPos = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
-                thiz->_controlleOrientation = glm::quat(controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2], controllersPose[i].orientation[3]);
-                thiz->_controllerDir = glm::mat3_cast(thiz->_controlleOrientation) * glm::vec3(0.f, 0.f, -1.f);
+                thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
+                thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2], controllersPose[i].orientation[3]);
+                thiz->_controllerDir[i] = glm::vec3(glm::mat3_cast(thiz->_controllerOrientation[i]) * glm::vec3(0.f, 0.f, -1.f));
+                thiz->_controllerMatrix[i] = glm::make_mat4(controllersPose[i].matrix);
             }
 
             ((View *)userData)->OnSceneDraw();
@@ -323,11 +326,10 @@ void View::OnSceneDraw()
     mProgram->Use();
 
     
+    glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
 
-    glm::mat4 model = glm::mat4(1.0f);
+    mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
 
-    glm::mat4 model1 = glm::translate(model, glm::vec3(-0.4f, 0.f, 0.f));
-    glm::mat4 model2 = glm::translate(model, glm::vec3(0.4f, 0.f, 0.f));
 
     // glm::mat4 model1 = glm::scale(model, glm::vec3(1.f, 5.f, 5.f));
 
@@ -337,12 +339,14 @@ void View::OnSceneDraw()
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
 
 #ifndef __EMSCRIPTEN__
+    mViewPos = mCamera.GetPosition();
     mProgram->SetFloat3(mProgram->Uniform("lightPos"), mCamera.GetPosition());
     mProgram->SetFloat3(mProgram->Uniform("viewPos"), mCamera.GetPosition());
     mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
     mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
 
 #else
+    mViewPos = _headPos;
     mProgram->SetFloat3(mProgram->Uniform("lightPos"), _headPos);
     mProgram->SetFloat3(mProgram->Uniform("viewPos"), _headPos);
     mProgram->SetMatrix4(mProgram->Uniform("view"), this->_viewMatrices[0]);
@@ -361,14 +365,14 @@ void View::OnSceneDraw()
     mMenu3D.RenderOut(this->_projectionMatrices[0] * this->_viewMatrices[0]);
 #endif
 
-    mController.draw(mProgram.get());
+    
 
     mCamera.Update();
 }
 
 void View::OnGUIDraw()
 {
-    /*{
+    {
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -409,7 +413,7 @@ void View::OnGUIDraw()
 
         ImGui::SetNextWindowSize(ImVec2(360.f, 110.f));
         ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
-        ImGui::Begin("FPS Graph", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+        ImGui::Begin("FPS Graph", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
         {
             char text[13] = {};
             sprintf(text, "FPS: %.3f", average_fps);
@@ -417,18 +421,21 @@ void View::OnGUIDraw()
 
             ImGui::SetNextItemWidth(ImGui::GetWindowWidth() - 30.f);
             ImGui::PlotLines("##Frame Times", &mFrames[0], mFrames.size());
-            
-            //char controllerOrientationStr[64] = {};
-            //sprintf(controllerOrientationStr, "ControlleOrientation:{%.3f, %.3f, %.3f, %.3f}", _controlleOrientation.x, _controlleOrientation.y, _controlleOrientation.z, _controlleOrientation.w);
-            //ImGui::Text(controllerOrientationStr);
+           
 
-            //char controllerDirStr[64] = {};
-            //sprintf(controllerDirStr, "ControllerDir:{%.3f, %.3f, %.3f}", _controllerDir.x, _controllerDir.y, _controllerDir.z);
-            //ImGui::Text(controllerDirStr);
+#ifndef __EMSCRIPTEN__
+            _controllerDir = mCamera.GetLook();
+            _controllerPos = mCamera.GetPosition();
+#else
+            std::string controllerOrientationStr("ControlleOrientation:{" + std::to_string(_controllerOrientation[0].x) + ", " + std::to_string(_controllerOrientation[0].y) + ", " + std::to_string(_controllerOrientation[0].z) + ", " + std::to_string(_controllerOrientation[0].w) + "}");
+            ImGui::Text(controllerOrientationStr.c_str());
+#endif
 
-            //char controllerPosStr[64] = {};
-            //sprintf(controllerPosStr, "ControllerPos:{%.3f, %.3f, %.3f}", _controllerPos.x, _controllerPos.y, _controllerPos.z);
-            //ImGui::Text(controllerPosStr);
+            std::string controllerDirStr("ControllerDir:{" + std::to_string(_controllerDir[0].x) + ", " + std::to_string(_controllerDir[0].y) + ", " + std::to_string(_controllerDir[0].z) + "}");
+            ImGui::Text(controllerDirStr.c_str());
+
+            std::string controllerPosStr("ControllerPos:{" + std::to_string(_controllerPos[0].x) + ", " + std::to_string(_controllerPos[0].y) + ", " + std::to_string(_controllerPos[0].z) + "}");
+            ImGui::Text(controllerPosStr.c_str());
 
 
         }
@@ -439,12 +446,12 @@ void View::OnGUIDraw()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    }*/
+    }
     {
 #ifndef __EMSCRIPTEN__
-        mMenu3D.RenderIn(mCamera.GetPosition() , mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
+        mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
 #else
-        mMenu3D.RenderIn(_controllerPos, _controllerDir, mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
+        mMenu3D.RenderIn(_controllerPos[0], _controllerDir[0], mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
 #endif
     }
 }
@@ -456,7 +463,7 @@ void View::OnFinalize()
     // mBishopVAO.release();
     // mKnightVAO.release();
     mProgram.release();
-    mController.destroy();
+    mRightController.destroy();
 }
 
 void View::OnMouseLeftDown(double x, double y)

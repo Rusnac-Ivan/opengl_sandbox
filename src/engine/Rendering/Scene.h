@@ -140,6 +140,8 @@ namespace Scene
 			//glm::vec4 weight0;
 		};
 
+		std::string fileName;
+
 		/*struct Vertices {
 			VkBuffer buffer = VK_NULL_HANDLE;
 			VkDeviceMemory memory;
@@ -181,8 +183,9 @@ namespace Scene
 		void loadMaterials(tinygltf::Model& gltfModel);
 		//void loadAnimations(tinygltf::Model& gltfModel);
 		void loadFromFile(std::string filename, float scale = 1.0f);
+		//void loadFromMemory(const uint32_t dataSize, const unsigned char* data, float scale = 1.0f);
 		void drawNode(gl::Program* program, Node* node);
-		void draw(gl::Program* program);
+		void draw(gl::Program* program, const glm::mat4& model);
 		void calculateBoundingBox(Node* node, Node* parent);
 		void getSceneDimensions();
 		//void updateAnimation(uint32_t index, float time);

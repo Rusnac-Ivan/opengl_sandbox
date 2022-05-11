@@ -258,11 +258,11 @@ namespace Scene
 			scale = glm::make_vec3(node.scale.data());
 			newNode->scale = scale;
 		}
-		/*if (node.matrix.size() == 16)
+		if (node.matrix.size() == 16)
 		{
 			newNode->matrix = glm::make_mat4x4(node.matrix.data());
 		}
-		else
+		/*else
 		{
 			newNode->matrix = glm::scale(newNode->matrix, newNode->scale);
 			newNode->matrix = newNode->matrix * glm::toMat4(newNode->rotation);
@@ -410,14 +410,13 @@ namespace Scene
 				newMesh->bb.min = glm::min(newMesh->bb.min, p->bb.min);
 				newMesh->bb.max = glm::max(newMesh->bb.max, p->bb.max);
 			}
-			newNode->mesh = newMesh;
-
-			if (parent) {
-				parent->children.push_back(newNode);
-			}
-			else {
-				nodes.push_back(newNode);
-			}
+			newNode->mesh = newMesh;	
+		}
+		if (parent) {
+			parent->children.push_back(newNode);
+		}
+		else {
+			nodes.push_back(newNode);
 		}
 	}
 
@@ -562,6 +561,9 @@ namespace Scene
 
 	void Model::loadFromFile(std::string filename, float scale)
 	{
+	
+#ifndef __EMSCRIPTEN__
+
 		tinygltf::Model gltfModel;
 		tinygltf::TinyGLTF gltfContext;
 		std::string error;
@@ -578,7 +580,7 @@ namespace Scene
 		std::vector<uint32_t> indexBuffer;
 		std::vector<Vertex> vertexBuffer;
 
-		if (fileLoaded) 
+		if (fileLoaded)
 		{
 			loadTextureSamplers(gltfModel);
 			loadTextures(gltfModel);
@@ -589,21 +591,109 @@ namespace Scene
 				const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
 				loadNode(nullptr, node, scene.nodes[i], gltfModel, indexBuffer, vertexBuffer, scale);
 			}
-			/*if (gltfModel.animations.size() > 0) {
-				loadAnimations(gltfModel);
-			}*/
-			//loadSkins(gltfModel);
+	}
+		else {
+			// TODO: throw
+			std::cerr << "Could not load gltf file: " << error << std::endl;
+			return;
+		}
 
-			/*for (auto node : linearNodes) {
-				// Assign skins
-				if (node->skinIndex > -1) {
-					node->skin = skins[node->skinIndex];
+		getSceneDimensions();
+#else
+		this->fileName.clear();
+		this->fileName = filename;
+
+		
+
+		emscripten_async_wget_data(
+			filename.c_str(), this, [](void* arg, void* data, int size)
+			{
+				tinygltf::Model gltfModel;
+				tinygltf::TinyGLTF gltfContext;
+				std::string error;
+				std::string warning;
+
+				Scene::Model* model = (Scene::Model*)arg;
+
+				bool binary = false;
+				size_t extpos = model->fileName.rfind('.', model->fileName.length());
+				if (extpos != std::string::npos) {
+					binary = (model->fileName.substr(extpos + 1, model->fileName.length() - extpos) == "glb");
 				}
-				// Initial pose
-				if (node->mesh) {
-					node->update();
+
+				bool fileLoaded = false;
+
+				if(binary)
+					fileLoaded = gltfContext.LoadBinaryFromMemory(&gltfModel, &error, &warning, (const unsigned char*)data, size);
+				else
+					fileLoaded = gltfContext.LoadASCIIFromString(&gltfModel, &error, &warning, (const char*)data, size, "");
+
+			
+				std::vector<uint32_t> indexBuffer;
+				std::vector<Vertex> vertexBuffer;
+
+				if (fileLoaded)
+				{
+					model->loadTextureSamplers(gltfModel);
+					model->loadTextures(gltfModel);
+					model->loadMaterials(gltfModel);
+					// TODO: scene handling with no default scene
+					const tinygltf::Scene& scene = gltfModel.scenes[gltfModel.defaultScene > -1 ? gltfModel.defaultScene : 0];
+					for (size_t i = 0; i < scene.nodes.size(); i++) {
+						const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
+						model->loadNode(nullptr, node, scene.nodes[i], gltfModel, indexBuffer, vertexBuffer, 1.f);
+					}
 				}
-			}*/
+				else {
+					// TODO: throw
+					std::cerr << "Could not load gltf file: " << error << std::endl;
+					return;
+				}
+
+				model->getSceneDimensions();
+			},
+			[](void* arg)
+			{
+				printf("emscripten_async_wget_data Error \n");
+			}
+		);
+#endif
+
+		
+	}
+
+	/*void Model::loadFromMemory(const uint32_t dataSize, const unsigned char* data, float scale = 1.0f)
+	{
+		tinygltf::Model gltfModel;
+		tinygltf::TinyGLTF gltfContext;
+		std::string error;
+		std::string warning;
+
+		bool binary = false;
+		size_t extpos = filename.rfind('.', filename.length());
+		if (extpos != std::string::npos) {
+			binary = (filename.substr(extpos + 1, filename.length() - extpos) == "glb");
+		}
+
+		gltfContext.LoadBinaryFromMemory(&gltfModel, &error, &warning, data, dataSize);
+		gltfContext.LoadASCIIFromString(&gltfModel, &error, &warning, (const char*)data, dataSize, "");
+
+		bool fileLoaded = binary ? gltfContext.LoadBinaryFromFile(&gltfModel, &error, &warning, filename.c_str()) : gltfContext.LoadASCIIFromFile(&gltfModel, &error, &warning, filename.c_str());
+
+		std::vector<uint32_t> indexBuffer;
+		std::vector<Vertex> vertexBuffer;
+
+		if (fileLoaded)
+		{
+			loadTextureSamplers(gltfModel);
+			loadTextures(gltfModel);
+			loadMaterials(gltfModel);
+			// TODO: scene handling with no default scene
+			const tinygltf::Scene& scene = gltfModel.scenes[gltfModel.defaultScene > -1 ? gltfModel.defaultScene : 0];
+			for (size_t i = 0; i < scene.nodes.size(); i++) {
+				const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
+				loadNode(nullptr, node, scene.nodes[i], gltfModel, indexBuffer, vertexBuffer, scale);
+			}
 		}
 		else {
 			// TODO: throw
@@ -611,30 +701,8 @@ namespace Scene
 			return;
 		}
 
-		//extensions = gltfModel.extensionsUsed;
-
-		//size_t vertexBufferSize = vertexBuffer.size() * sizeof(Vertex);
-		//size_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
-
-		/*vertices.Data(vertexBufferSize, vertexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
-		vertices.AttributesPattern({
-			gl::VertexBuffer::AttribType::POSITION, 
-			gl::VertexBuffer::AttribType::NORMAL, 
-			gl::VertexBuffer::AttribType::UV_0, 
-			gl::VertexBuffer::AttribType::UV_1, 
-			gl::VertexBuffer::AttribType::JOINT,
-			gl::VertexBuffer::AttribType::WEIGHT
-		});
-
-		indices.Data(indexBufferSize, indexBuffer.data(), gl::Buffer::UsageMode::STATIC_DRAW);
-
-		//VAO.LinkVBO()*/
-
-
-		//assert(vertexBufferSize > 0);
-
 		getSceneDimensions();
-	}
+	}*/
 
 
 	void Model::drawNode(gl::Program* program, Node* node)
@@ -653,11 +721,11 @@ namespace Scene
 		}
 	}
 
-	void Model::draw(gl::Program* program)
+	void Model::draw(gl::Program* program, const glm::mat4& model)
 	{
 		program->Use();
 		for (auto& node : nodes) {
-			program->SetMatrix4(program->Uniform("model"), node->getMatrix());
+			program->SetMatrix4(program->Uniform("model"), node->getMatrix() * model);
 			drawNode(program, node);
 		}
 	}

@@ -29,10 +29,13 @@ private:
     glm::mat4 _controllerTransformations[2];
     glm::vec4 _viewports[2];
     glm::vec3 _headPos;
-    glm::vec3 _controllerPos;
-    glm::vec3 _controllerDir;
-    glm::quat _controlleOrientation;
+    glm::vec3 _controllerPos[2];
+    glm::vec3 _controllerDir[2];
+    glm::quat _controllerOrientation[2];
+    glm::mat4 _controllerMatrix[2];
     gl::CubeMap mCubeMap;
+
+    glm::vec3 mViewPos;
 
     std::vector<float> mFrames;
 
