@@ -326,7 +326,7 @@ void View::OnSceneDraw()
     mProgram->Use();
 
     
-    glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 
     mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
 
@@ -411,7 +411,7 @@ void View::OnGUIDraw()
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7f, 0.f, 0.f, 0.5f));
         }
 
-        ImGui::SetNextWindowSize(ImVec2(360.f, 110.f));
+        ImGui::SetNextWindowSize(ImVec2(380.f, 110.f));
         ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
         ImGui::Begin("FPS Graph", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
         {
@@ -424,10 +424,10 @@ void View::OnGUIDraw()
            
 
 #ifndef __EMSCRIPTEN__
-            _controllerDir = mCamera.GetLook();
-            _controllerPos = mCamera.GetPosition();
+            _controllerDir[0] = mCamera.GetLook();
+            _controllerPos[0] = mCamera.GetPosition();
 #else
-            std::string controllerOrientationStr("ControlleOrientation:{" + std::to_string(_controllerOrientation[0].x) + ", " + std::to_string(_controllerOrientation[0].y) + ", " + std::to_string(_controllerOrientation[0].z) + ", " + std::to_string(_controllerOrientation[0].w) + "}");
+            std::string controllerOrientationStr("ControlOrienta:{" + std::to_string(_controllerOrientation[0].x) + ", " + std::to_string(_controllerOrientation[0].y) + ", " + std::to_string(_controllerOrientation[0].z) + ", " + std::to_string(_controllerOrientation[0].w) + "}");
             ImGui::Text(controllerOrientationStr.c_str());
 #endif
 

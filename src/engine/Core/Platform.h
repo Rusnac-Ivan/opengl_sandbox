@@ -38,25 +38,48 @@ unsigned short DataSize(const DataType& dataType);
 #ifdef NDEBUG
     #define GL(line) gl##line
 #else
-    #define GL(line)\
-            gl##line;\
-            do{\
-                GLenum error = glGetError( );\
-                switch ( error )\
-                {\
-                    case GL_INVALID_ENUM:                   assert( "GL_INVALID_ENUM" && NULL ); break;\
-                    case GL_INVALID_VALUE:                  assert( "GL_INVALID_VALUE" && NULL ); break;\
-                    case GL_INVALID_OPERATION:              assert( "GL_INVALID_OPERATION" && NULL ); break;\
-                    case GL_STACK_OVERFLOW:                 assert( "GL_STACK_OVERFLOW" && NULL ); break;\
-                    case GL_STACK_UNDERFLOW:                assert( "GL_STACK_UNDERFLOW" && NULL ); break;\
-                    case GL_OUT_OF_MEMORY:                  assert( "GL_OUT_OF_MEMORY" && NULL ); break;\
-                    case GL_INVALID_FRAMEBUFFER_OPERATION:  assert( "GL_INVALID_FRAMEBUFFER_OPERATION" && NULL ); break;\
-                    default: break;\
-                }\
-            } while (0); \
-            
-     
+    #ifdef __EMSCRIPTEN__
+        #define GL(line)\
+                gl##line;\
+                do{\
+                    GLenum error = glGetError( );\
+                    switch ( error )\
+                    {\
+                        case GL_INVALID_ENUM:                   assert( "GL_INVALID_ENUM" && NULL ); break;\
+                        case GL_INVALID_VALUE:                  assert( "GL_INVALID_VALUE" && NULL ); break;\
+                        case GL_INVALID_OPERATION:              assert( "GL_INVALID_OPERATION" && NULL ); break;\
+                        case GL_STACK_OVERFLOW:                 assert( "GL_STACK_OVERFLOW" && NULL ); break;\
+                        case GL_STACK_UNDERFLOW:                assert( "GL_STACK_UNDERFLOW" && NULL ); break;\
+                        case GL_OUT_OF_MEMORY:                  assert( "GL_OUT_OF_MEMORY" && NULL ); break;\
+                        case GL_INVALID_FRAMEBUFFER_OPERATION:  assert( "GL_INVALID_FRAMEBUFFER_OPERATION" && NULL ); break;\
+                        default: break;\
+                    }\
+                    if(error != GL_NO_ERROR)\
+                    {\
+                        emscripten::val error = emscripten::val::global("Error").new_();\
+                        emscripten::val::global("console").call<void>("log", error["stack"]);\
+                    }\
+                } while (0);\
 
+    #else
+        #define GL(line)\
+                gl##line;\
+                do{\
+                    GLenum error = glGetError( );\
+                    switch ( error )\
+                    {\
+                        case GL_INVALID_ENUM:                   assert( "GL_INVALID_ENUM" && NULL ); break;\
+                        case GL_INVALID_VALUE:                  assert( "GL_INVALID_VALUE" && NULL ); break;\
+                        case GL_INVALID_OPERATION:              assert( "GL_INVALID_OPERATION" && NULL ); break;\
+                        case GL_STACK_OVERFLOW:                 assert( "GL_STACK_OVERFLOW" && NULL ); break;\
+                        case GL_STACK_UNDERFLOW:                assert( "GL_STACK_UNDERFLOW" && NULL ); break;\
+                        case GL_OUT_OF_MEMORY:                  assert( "GL_OUT_OF_MEMORY" && NULL ); break;\
+                        case GL_INVALID_FRAMEBUFFER_OPERATION:  assert( "GL_INVALID_FRAMEBUFFER_OPERATION" && NULL ); break;\
+                        default: break;\
+                    }\
+                } while (0);\
+
+    #endif
 #endif
 
 
