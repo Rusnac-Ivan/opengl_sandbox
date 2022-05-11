@@ -135,6 +135,7 @@ void EventHandler::WindowSizeCallback(GLFWwindow* window, int width, int height)
 		//event_t e(ET_WINDOW_SIZE, w, h, timer::current_time());
 		//LOGI("Window resized to %dx%d", w, h);
 		//platform->on_window_size_changed(w, h);
+		mView->OnResize(width, height);
 		return true;
 	}
 

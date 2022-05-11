@@ -33,6 +33,7 @@ Scene::Model mRightController;
 
 View::View()
 {
+    mReadyToDraw = false;
     mMousePos = glm::vec2();
     mFrames.reserve(100);
 
@@ -50,27 +51,6 @@ void View::OnCreate(int width, int height)
 void View::OnDestroy()
 {
 }
-
-
-#ifdef __EMSCRIPTEN__
-    static void OnError(int error_code)
-    {
-        switch (error_code)
-        {
-        case WEBXR_ERR_API_UNSUPPORTED:
-            printf("WebXR unsupported in this browser.\n");
-            break;
-        case WEBXR_ERR_GL_INCAPABLE:
-            printf("GL context cannot be used to render to WebXR\n");
-            break;
-        case WEBXR_ERR_SESSION_UNSUPPORTED:
-            printf("VR not supported on this device\n");
-            break;
-        default:
-            printf("Unknown WebXR error with code\n");
-        }
-    }
-#endif
 
 void View::OnInitialize()
 {
@@ -236,74 +216,6 @@ void View::OnInitialize()
     mCubeMap.SetNegativeZ("./resources/cube_maps/yokohama/negz.jpg");
 
     mRightController.loadFromFile("./resources/models/controllers/base/controller.glb");
-
-    webxr_init(
-        /* Frame callback */
-        [](void *userData, int time, WebXRRigidTransform *headPose, WebXRView views[2], int viewCount)
-        {
-            // printf("webxr_init: Frame callback\n");
-
-            View *thiz = (View *)userData;
-
-            int viewIndex = 0;
-            for (WebXRView view : {views[0], views[1]})
-            {
-                thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
-
-                thiz->_viewMatrices[viewIndex] = glm::make_mat4(view.viewPose.matrix);
-
-                thiz->_projectionMatrices[viewIndex] = glm::make_mat4(view.projectionMatrix);
-
-                // printf("{x:%d, y:%d, w:%d, h:%d}\n", view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]);
-
-                ++viewIndex;
-            }
-            if (headPose)
-            {
-                thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
-                //thiz->_controlleOrientation = glm::quat(headPose->orientation[0], headPose->orientation[1], headPose->orientation[2], headPose->orientation[3]);
-                //thiz->_controllerDir = glm::mat3_cast(thiz->_controlleOrientation) * glm::vec3(0.f, 0.f, -1.f);
-            }
-
-            constexpr int maxInputCount = 2;
-            WebXRInputSource sources[maxInputCount];
-            WebXRRigidTransform controllersPose[maxInputCount];
-            int sourcesCount = 0;
-            webxr_get_input_sources(sources, maxInputCount, &sourcesCount);
-            
-            for (int i = 0; i < sourcesCount; ++i)
-            {   
-                webxr_get_input_pose(sources + i, controllersPose + i);
-                //printf("WebXRInputSource id: %d, WebXRHandedness: %d, WebXRTargetRayMode: %d\n", sources[i].id, sources[i].handedness, sources[i].targetRayMode);
-                thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
-                thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2], controllersPose[i].orientation[3]);
-                thiz->_controllerDir[i] = glm::vec3(glm::mat3_cast(thiz->_controllerOrientation[i]) * glm::vec3(0.f, 0.f, -1.f));
-                thiz->_controllerMatrix[i] = glm::make_mat4(controllersPose[i].matrix);
-            }
-
-            ((View *)userData)->OnSceneDraw();
-            ((View *)userData)->OnGUIDraw();
-        },
-        /* Session start callback */
-        [](void *userData, int mode)
-        {
-            printf("webxr_init: Session start callback\n");
-        },
-        /* Session end callback */
-        [](void *userData, int mode)
-        {
-            printf("webxr_init: Session end callback\n");
-        },
-        /* Error callback */
-        [](void *userData, int error)
-        {
-            printf("webxr_init: Errord callback\n");
-            OnError(error);
-        },
-        /* userData */
-        this);
-
-    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
 #endif
 
     gl::CubeMap::Sampler sam;
@@ -314,18 +226,24 @@ void View::OnInitialize()
     sam.wrapModeR = gl::Texture::WrapMode::CLAMP_TO_EDGE;
 
     mCubeMap.SetSampler(sam);
+
+    mReadyToDraw = true;
 }
 
 void View::OnSceneDraw()
 {
-
     gl::RenderContext::SetViewport(mWidth, mHeight);
     gl::RenderContext::SetClearColor(.3f, .5f, .8f, 1.f);
     gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
 
     mProgram->Use();
 
-    
+    #ifndef __EMSCRIPTEN__
+        mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    #else
+        mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
+    #endif
+
     glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 
     mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
@@ -526,6 +444,7 @@ void View::OnResize(int width, int height)
     mHeight = height;
     gl::RenderContext::SetViewport(width, height);
     mCamera.Resize(glm::vec2(width, height));
+    /*
     mProgram->Use();
     // mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
 #ifndef __EMSCRIPTEN__
@@ -535,4 +454,8 @@ void View::OnResize(int width, int height)
 #endif
 
     mProgram->StopUsing();
+*/
+
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
+    printf("View::OnResize\n");
 }
