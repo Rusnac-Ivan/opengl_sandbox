@@ -43,6 +43,11 @@ unsigned short DataSize(const DataType& dataType);
                 gl##line;\
                 do{\
                     GLenum error = glGetError( );\
+                    if(error != GL_NO_ERROR)\
+                    {\
+                        emscripten::val error = emscripten::val::global("Error").new_();\
+                        emscripten::val::global("console").call<void>("log", error["stack"]);\
+                    }\
                     switch ( error )\
                     {\
                         case GL_INVALID_ENUM:                   assert( "GL_INVALID_ENUM" && NULL ); break;\
@@ -53,11 +58,6 @@ unsigned short DataSize(const DataType& dataType);
                         case GL_OUT_OF_MEMORY:                  assert( "GL_OUT_OF_MEMORY" && NULL ); break;\
                         case GL_INVALID_FRAMEBUFFER_OPERATION:  assert( "GL_INVALID_FRAMEBUFFER_OPERATION" && NULL ); break;\
                         default: break;\
-                    }\
-                    if(error != GL_NO_ERROR)\
-                    {\
-                        emscripten::val error = emscripten::val::global("Error").new_();\
-                        emscripten::val::global("console").call<void>("log", error["stack"]);\
                     }\
                 } while (0);\
 

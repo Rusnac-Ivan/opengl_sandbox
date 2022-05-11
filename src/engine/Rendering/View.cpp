@@ -34,7 +34,7 @@ Scene::Model mRightController;
 View::View()
 {
     mMousePos = glm::vec2();
-    mFrames.reserve(100);
+    mFPS.reserve(100);
 
 }
 View::~View()
@@ -274,7 +274,7 @@ void View::OnInitialize()
             for (int i = 0; i < sourcesCount; ++i)
             {   
                 webxr_get_input_pose(sources + i, controllersPose + i);
-                //printf("WebXRInputSource id: %d, WebXRHandedness: %d, WebXRTargetRayMode: %d\n", sources[i].id, sources[i].handedness, sources[i].targetRayMode);
+
                 thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
                 thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2], controllersPose[i].orientation[3]);
                 thiz->_controllerDir[i] = glm::vec3(glm::mat3_cast(thiz->_controllerOrientation[i]) * glm::vec3(0.f, 0.f, -1.f));
@@ -380,22 +380,22 @@ void View::OnGUIDraw()
 
         float fps = (*GImGui).IO.Framerate;
         
-        if (mFrames.size() > 100) //Max seconds to show
+        if (mFPS.size() > 100) //Max seconds to show
         {
-            for (size_t i = 1; i < mFrames.size(); i++)
+            for (size_t i = 1; i < mFPS.size(); i++)
             {
-                mFrames[i - 1] = mFrames[i];
+                mFPS[i - 1] = mFPS[i];
             }
-            mFrames[mFrames.size() - 1] = fps;
+            mFPS[mFPS.size() - 1] = fps;
         }
         else
         {
-            mFrames.push_back(fps);
+            mFPS.push_back(fps);
         }
         float average_fps = 0.f;
-        for (float val : mFrames)
+        for (float val : mFPS)
         {
-            average_fps += val / mFrames.size();
+            average_fps += val / mFPS.size();
         }
 
         if (average_fps > 50.f)
@@ -411,7 +411,7 @@ void View::OnGUIDraw()
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7f, 0.f, 0.f, 0.5f));
         }
 
-        ImGui::SetNextWindowSize(ImVec2(380.f, 110.f));
+        ImGui::SetNextWindowSize(ImVec2(390.f, 160.f));
         ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
         ImGui::Begin("FPS Graph", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
         {
@@ -420,7 +420,7 @@ void View::OnGUIDraw()
             ImGui::Text(text);
 
             ImGui::SetNextItemWidth(ImGui::GetWindowWidth() - 30.f);
-            ImGui::PlotLines("##Frame Times", &mFrames[0], mFrames.size());
+            ImGui::PlotLines("##Frame Times", &mFPS[0], mFPS.size());
            
 
 #ifndef __EMSCRIPTEN__
@@ -437,7 +437,8 @@ void View::OnGUIDraw()
             std::string controllerPosStr("ControllerPos:{" + std::to_string(_controllerPos[0].x) + ", " + std::to_string(_controllerPos[0].y) + ", " + std::to_string(_controllerPos[0].z) + "}");
             ImGui::Text(controllerPosStr.c_str());
 
-
+            std::string intersectPointStr("IntersectPoint:{" + std::to_string(mMenu3D.GetIntersectPoint().x) + ", " + std::to_string(mMenu3D.GetIntersectPoint().y) + ", " + std::to_string(mMenu3D.GetIntersectPoint().z) + "}");
+            ImGui::Text(intersectPointStr.c_str());
         }
         ImGui::End();
         ImGui::PopStyleColor();
@@ -535,4 +536,91 @@ void View::OnResize(int width, int height)
 #endif
 
     mProgram->StopUsing();
+}
+
+void View::SphereGenerate()
+{
+	mSphereVertices.clear();
+
+	std::vector<glm::vec3> vertices;
+
+	float radius = 0.03f;
+	int sectorCount = 20;
+	int stackCount = 20;
+
+	float x, y, z, xy;
+	float nx, ny, nz, lengthInv = 1.f / radius;
+
+	float sectorStep = 2.f * M_PI / sectorCount;
+	float stackStep = M_PI / stackCount;
+	float sectorAngle, stackAngle;
+
+	for (int i = 0; i <= stackCount; ++i)
+	{
+		stackAngle = M_PI / 2 - i * stackStep;
+		xy = radius * cosf(stackAngle);
+		z = radius * sinf(stackAngle);
+		for (int j = 0; j <= sectorCount; ++j)
+		{
+			sectorAngle = j * sectorStep;
+			x = xy * cosf(sectorAngle);
+			y = xy * sinf(sectorAngle);
+			//nx = x * lengthInv;
+			//ny = y * lengthInv;
+			//nz = z * lengthInv;
+			glm::vec3 vertex;
+			vertex.x = x;
+			vertex.y = y;
+			vertex.z = z;
+			vertices.push_back(vertex);
+		}
+	}
+	for (int i = 0, k1, k2; i < stackCount; ++i)
+	{
+		k1 = i * (sectorCount + 1);     
+		k2 = k1 + sectorCount + 1;      
+		for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+		{
+			if (i != 0)
+			{
+				mSphereVertices.push_back(vertices[k1]);
+				mSphereVertices.push_back(vertices[k2]);
+				mSphereVertices.push_back(vertices[k1 + 1]);
+			}
+			if (i != (stackCount - 1))
+			{
+				mSphereVertices.push_back(vertices[k1 + 1]);
+				mSphereVertices.push_back(vertices[k2]);
+				mSphereVertices.push_back(vertices[k2 + 1]);
+			}
+		}
+	}
+}
+
+void View::PrismGenerate()
+{
+	float a = 0.03;
+
+	glm::vec3 P1 = glm::vec3(-a / 2.f, 0.f, -a / (2.f * sqrt(3.f)));
+	glm::vec3 P2 = glm::vec3(0.f, 0.f, a / sqrt(3.f));
+	glm::vec3 P3 = glm::vec3(a / 2.f, 0.f, -a / (2.f * sqrt(3.f)));
+
+	glm::vec3 d = glm::vec3(0.f, 1.f, 0.f);
+
+	glm::vec3 P1_, P2_, P3_;
+
+	P1_ = P1 + d;	P2_ = P2 + d;	P3_ = P3 + d;
+
+	mPrismVertices.push_back(P1);	mPrismVertices.push_back(P2);	mPrismVertices.push_back(P2_);
+
+	mPrismVertices.push_back(P1);	mPrismVertices.push_back(P2_);	mPrismVertices.push_back(P1_);
+
+	mPrismVertices.push_back(P2);	mPrismVertices.push_back(P3_);	mPrismVertices.push_back(P2_);
+
+	mPrismVertices.push_back(P2);	mPrismVertices.push_back(P3);	mPrismVertices.push_back(P3_);
+
+	mPrismVertices.push_back(P3);	mPrismVertices.push_back(P1_);	mPrismVertices.push_back(P3_);
+
+	mPrismVertices.push_back(P3);	mPrismVertices.push_back(P1);	mPrismVertices.push_back(P1_);
+
 }

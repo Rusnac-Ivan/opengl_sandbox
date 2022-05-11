@@ -176,7 +176,6 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
     return dir;*/
 }
 
-static glm::vec3 Point = {};
 #ifndef __EMSCRIPTEN__
     void Menu3D::RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4 &view, const glm::mat4 &proj)
 #else
@@ -208,7 +207,7 @@ static glm::vec3 Point = {};
         int a = 0;
         glm::vec3 P1 = controllerPos + ray * distance;
 
-        Point = P1;
+        mPoint = P1;
 
         glm::vec3 Vx = glm::normalize(mVertices[3] - mVertices[0]);
         glm::vec3 Vy = glm::normalize(mVertices[1] - mVertices[0]);
@@ -290,7 +289,7 @@ void Menu3D::RenderOut(const glm::mat4 &proj_view)
     // model = glm::rotate(model, angle, glm::vec3(0.f, 0.f, 1.f));
     // angle += 0.01f;
     mProgram->Use();
-    mProgram->SetFloat3(mProgram->Uniform("pos"), Point);
+    mProgram->SetFloat3(mProgram->Uniform("pos"), mPoint);
     mProgram->SetMatrix4(mProgram->Uniform("proj_view"), proj_view);
     mProgram->SetMatrix4(mProgram->Uniform("model"), model);
     mColorBuff->Bind();

@@ -35,6 +35,8 @@ public:
 
 	static void Initialize();
 
+	glm::vec3 GetIntersectPoint(){ return mPoint; }
+
 	void Create(float width, float height);
 #ifndef __EMSCRIPTEN__
 	void RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj);
