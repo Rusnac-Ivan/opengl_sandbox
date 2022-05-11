@@ -92,8 +92,8 @@ if(DEFINED EMSCRIPTEN)
             -s USE_GLFW=3 
             --bind 
             -s WASM=1 
-            -s INITIAL_MEMORY=1GB 
-            -s MAXIMUM_MEMORY=3GB 
+            -s INITIAL_MEMORY=256MB 
+            -s MAXIMUM_MEMORY=1GB 
             -s ALLOW_MEMORY_GROWTH=1 
 
             -s ASYNCIFY 

@@ -1,7 +1,30 @@
 #include "Window.h"
 #include <Rendering/imgui_impl_3d_to_2d.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #ifdef __EMSCRIPTEN__
 	#include "webxr.h"
+#endif
+
+#ifdef __EMSCRIPTEN__
+    static void OnError(int error_code)
+    {
+        switch (error_code)
+        {
+        case WEBXR_ERR_API_UNSUPPORTED:
+            printf("WebXR unsupported in this browser.\n");
+            break;
+        case WEBXR_ERR_GL_INCAPABLE:
+            printf("GL context cannot be used to render to WebXR\n");
+            break;
+        case WEBXR_ERR_SESSION_UNSUPPORTED:
+            printf("VR not supported on this device\n");
+            break;
+        default:
+            printf("Unknown WebXR error with code\n");
+        }
+    }
 #endif
 
 static void glfw_error_callback(int error, const char* description)
@@ -54,8 +77,77 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
 	glfwWindowHint(GLFW_RESIZABLE, 1);
 	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-	
 #ifdef __EMSCRIPTEN__
+
+    webxr_init(
+        /* Frame callback */
+        [](void *userData, int time, WebXRRigidTransform *headPose, WebXRView views[2], int viewCount)
+        {
+            printf("webxr_init: Frame callback\n");
+
+            View *thiz = ((Window*)userData)->mView.get();
+
+            int viewIndex = 0;
+            for (WebXRView view : {views[0], views[1]})
+            {
+                thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
+
+                thiz->_viewMatrices[viewIndex] = glm::make_mat4(view.viewPose.matrix);
+
+                thiz->_projectionMatrices[viewIndex] = glm::make_mat4(view.projectionMatrix);
+
+                // printf("{x:%d, y:%d, w:%d, h:%d}\n", view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]);
+
+                ++viewIndex;
+            }
+            if (headPose)
+            {
+                thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
+                //thiz->_controlleOrientation = glm::quat(headPose->orientation[0], headPose->orientation[1], headPose->orientation[2], headPose->orientation[3]);
+                //thiz->_controllerDir = glm::mat3_cast(thiz->_controlleOrientation) * glm::vec3(0.f, 0.f, -1.f);
+            }
+
+            constexpr int maxInputCount = 2;
+            WebXRInputSource sources[maxInputCount];
+            WebXRRigidTransform controllersPose[maxInputCount];
+            int sourcesCount = 0;
+            webxr_get_input_sources(sources, maxInputCount, &sourcesCount);
+            
+            for (int i = 0; i < sourcesCount; ++i)
+            {   
+                webxr_get_input_pose(sources + i, controllersPose + i);
+                //printf("WebXRInputSource id: %d, WebXRHandedness: %d, WebXRTargetRayMode: %d\n", sources[i].id, sources[i].handedness, sources[i].targetRayMode);
+                thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
+                thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2], controllersPose[i].orientation[3]);
+                thiz->_controllerDir[i] = glm::vec3(glm::mat3_cast(thiz->_controllerOrientation[i]) * glm::vec3(0.f, 0.f, -1.f));
+                thiz->_controllerMatrix[i] = glm::make_mat4(controllersPose[i].matrix);
+            }
+
+			if (thiz->mReadyToDraw)
+			{
+            	thiz->OnSceneDraw();
+            	thiz->OnGUIDraw();
+			}
+        },
+        /* Session start callback */
+        [](void *userData, int mode)
+        {
+            printf("webxr_init: Session start callback\n");
+        },
+        /* Session end callback */
+        [](void *userData, int mode)
+        {
+            printf("webxr_init: Session end callback\n");
+        },
+        /* Error callback */
+        [](void *userData, int error)
+        {
+            printf("webxr_init: Errord callback\n");
+            OnError(error);
+        },
+        /* userData */
+        this);
+
 	//GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	//const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 	//assert(false);

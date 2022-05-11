@@ -24,6 +24,7 @@ private:
     Menu3D mMenu3D;
     glm::vec2 mMousePos;
 
+public:
     glm::mat4 _viewMatrices[2];
     glm::mat4 _projectionMatrices[2];
     glm::mat4 _controllerTransformations[2];
@@ -36,7 +37,7 @@ private:
     gl::CubeMap mCubeMap;
 
     glm::vec3 mViewPos;
-
+    bool mReadyToDraw;
     std::vector<float> mFPS;
 
 

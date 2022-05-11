@@ -86,7 +86,7 @@ ExternalProject_Add(imguizmo
 ExternalProject_Add_Step(imguizmo replace_imguizmo_cpp
     DEPENDEES download
     DEPENDERS configure
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/patches/imguizmo/ImGuizmo.cpp ${LIBRARIES_PREFIX}/imguizmo/src/imguizmo/ImGuizmo.cpp
+    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/patches/imguizmo/ImGuizmo.cpp" "${LIBRARIES_PREFIX}/imguizmo/src/imguizmo/ImGuizmo.cpp"
 )
 ExternalProject_Get_property(imguizmo SOURCE_DIR)
 set(IMGUIZMO_SOURCE_DIR ${SOURCE_DIR})
