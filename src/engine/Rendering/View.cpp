@@ -9,6 +9,8 @@
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #ifdef __EMSCRIPTEN__
 #include "webxr.h"
 #endif
@@ -29,14 +31,16 @@ unsigned int indices[] = {
 };
 
 Scene::Model mRightController;
-//Scene::Model mLeftController;
+// Scene::Model mLeftController;
 
 View::View()
 {
     mReadyToDraw = false;
     mMousePos = glm::vec2();
-    mFrames.reserve(100);
+    mFPS.reserve(100);
 
+    SphereGenerate();
+    PrismGenerate();
 }
 View::~View()
 {
@@ -171,8 +175,6 @@ void View::OnInitialize()
     // mProgram->SetFloat3(mProgram->Uniform("objectColor"), glm::vec3(0.714f, 0.4284, 0.18144));
     mProgram->StopUsing();
 
-    
-
     // mMenuVBO.Data(4, sizeof(vertices), vertices, gl::Buffer::UsageMode::STATIC_DRAW);
     // mMenuVBO.AttributesPattern({gl::VertexBuffer::AttribType::POSITION, gl::VertexBuffer::AttribType::NORMAL, gl::VertexBuffer::AttribType::UV_0 });
     // mMenuEBO.Data(sizeof(indices), indices, DataType::UNSIGNED_INT, gl::Buffer::UsageMode::STATIC_DRAW);
@@ -198,15 +200,15 @@ void View::OnInitialize()
     mMenu3D.Create(500.f, 700.f);
 
 #ifndef __EMSCRIPTEN__
-    mCubeMap.SetPositiveX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
-    mCubeMap.SetNegativeX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
-    mCubeMap.SetPositiveY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
-    mCubeMap.SetNegativeY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
-    mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
-    mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
+    mCubeMap.SetPositiveX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
+    mCubeMap.SetNegativeX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
+    mCubeMap.SetPositiveY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
+    mCubeMap.SetNegativeY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
+    mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
+    mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\controller.glb");
-    //mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
+    mRightController.loadFromFile("D:\\CPP\\opengl_sandbox\\resources\\models\\controllers\\base\\controller.glb");
+    // mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
     mCubeMap.SetNegativeX("./resources/cube_maps/yokohama/negx.jpg");
@@ -238,16 +240,15 @@ void View::OnSceneDraw()
 
     mProgram->Use();
 
-    #ifndef __EMSCRIPTEN__
-        mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
-    #else
-        mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
-    #endif
+#ifndef __EMSCRIPTEN__
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+#else
+    mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
+#endif
 
     glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 
     mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
-
 
     // glm::mat4 model1 = glm::scale(model, glm::vec3(1.f, 5.f, 5.f));
 
@@ -271,8 +272,6 @@ void View::OnSceneDraw()
     mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
 #endif
 
-   
-
     mProgram->StopUsing();
 
 #ifndef __EMSCRIPTEN__
@@ -283,13 +282,18 @@ void View::OnSceneDraw()
     mMenu3D.RenderOut(this->_projectionMatrices[0] * this->_viewMatrices[0]);
 #endif
 
-    
-
     mCamera.Update();
 }
 
 void View::OnGUIDraw()
 {
+    {
+#ifndef __EMSCRIPTEN__
+        mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
+#else
+        mMenu3D.RenderIn(_controllerPos[0], _controllerDir[0], mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
+#endif
+    }
     {
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -297,23 +301,23 @@ void View::OnGUIDraw()
         ImGui::NewFrame();
 
         float fps = (*GImGui).IO.Framerate;
-        
-        if (mFrames.size() > 100) //Max seconds to show
+
+        if (mFPS.size() > 100) // Max seconds to show
         {
-            for (size_t i = 1; i < mFrames.size(); i++)
+            for (size_t i = 1; i < mFPS.size(); i++)
             {
-                mFrames[i - 1] = mFrames[i];
+                mFPS[i - 1] = mFPS[i];
             }
-            mFrames[mFrames.size() - 1] = fps;
+            mFPS[mFPS.size() - 1] = fps;
         }
         else
         {
-            mFrames.push_back(fps);
+            mFPS.push_back(fps);
         }
         float average_fps = 0.f;
-        for (float val : mFrames)
+        for (float val : mFPS)
         {
-            average_fps += val / mFrames.size();
+            average_fps += val / mFPS.size();
         }
 
         if (average_fps > 50.f)
@@ -329,7 +333,7 @@ void View::OnGUIDraw()
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7f, 0.f, 0.f, 0.5f));
         }
 
-        ImGui::SetNextWindowSize(ImVec2(380.f, 110.f));
+        ImGui::SetNextWindowSize(ImVec2(390.f, 160.f));
         ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
         ImGui::Begin("FPS Graph", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
         {
@@ -338,8 +342,7 @@ void View::OnGUIDraw()
             ImGui::Text(text);
 
             ImGui::SetNextItemWidth(ImGui::GetWindowWidth() - 30.f);
-            ImGui::PlotLines("##Frame Times", &mFrames[0], mFrames.size());
-           
+            ImGui::PlotLines("##Frame Times", &mFPS[0], mFPS.size());
 
 #ifndef __EMSCRIPTEN__
             _controllerDir[0] = mCamera.GetLook();
@@ -355,7 +358,8 @@ void View::OnGUIDraw()
             std::string controllerPosStr("ControllerPos:{" + std::to_string(_controllerPos[0].x) + ", " + std::to_string(_controllerPos[0].y) + ", " + std::to_string(_controllerPos[0].z) + "}");
             ImGui::Text(controllerPosStr.c_str());
 
-
+            std::string intersectPointStr("IntersectPoint:{" + std::to_string(mMenu3D.GetIntersectPoint().x) + ", " + std::to_string(mMenu3D.GetIntersectPoint().y) + ", " + std::to_string(mMenu3D.GetIntersectPoint().z) + "}");
+            ImGui::Text(intersectPointStr.c_str());
         }
         ImGui::End();
         ImGui::PopStyleColor();
@@ -363,15 +367,8 @@ void View::OnGUIDraw()
         // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
     }
-    {
-#ifndef __EMSCRIPTEN__
-        mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
-#else
-        mMenu3D.RenderIn(_controllerPos[0], _controllerDir[0], mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
-#endif
-    }
+    
 }
 
 void View::OnFinalize()
@@ -456,6 +453,107 @@ void View::OnResize(int width, int height)
     mProgram->StopUsing();
 */
 
+#ifdef __EMSCRIPTEN__
     webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR);
-    printf("View::OnResize\n");
+#endif
+}
+
+void View::SphereGenerate()
+{
+    mSphereVertices.clear();
+
+    std::vector<glm::vec3> vertices;
+
+    float radius = 0.03f;
+    int sectorCount = 20;
+    int stackCount = 20;
+
+    float x, y, z, xy;
+    float nx, ny, nz, lengthInv = 1.f / radius;
+
+    float sectorStep = 2.f * M_PI / sectorCount;
+    float stackStep = M_PI / stackCount;
+    float sectorAngle, stackAngle;
+
+    for (int i = 0; i <= stackCount; ++i)
+    {
+        stackAngle = M_PI / 2 - i * stackStep;
+        xy = radius * cosf(stackAngle);
+        z = radius * sinf(stackAngle);
+        for (int j = 0; j <= sectorCount; ++j)
+        {
+            sectorAngle = j * sectorStep;
+            x = xy * cosf(sectorAngle);
+            y = xy * sinf(sectorAngle);
+            // nx = x * lengthInv;
+            // ny = y * lengthInv;
+            // nz = z * lengthInv;
+            glm::vec3 vertex;
+            vertex.x = x;
+            vertex.y = y;
+            vertex.z = z;
+            vertices.push_back(vertex);
+        }
+    }
+    for (int i = 0, k1, k2; i < stackCount; ++i)
+    {
+        k1 = i * (sectorCount + 1);
+        k2 = k1 + sectorCount + 1;
+        for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+        {
+            if (i != 0)
+            {
+                mSphereVertices.push_back(vertices[k1]);
+                mSphereVertices.push_back(vertices[k2]);
+                mSphereVertices.push_back(vertices[k1 + 1]);
+            }
+            if (i != (stackCount - 1))
+            {
+                mSphereVertices.push_back(vertices[k1 + 1]);
+                mSphereVertices.push_back(vertices[k2]);
+                mSphereVertices.push_back(vertices[k2 + 1]);
+            }
+        }
+    }
+}
+
+void View::PrismGenerate()
+{
+    float a = 0.03;
+
+    glm::vec3 P1 = glm::vec3(-a / 2.f, 0.f, -a / (2.f * sqrt(3.f)));
+    glm::vec3 P2 = glm::vec3(0.f, 0.f, a / sqrt(3.f));
+    glm::vec3 P3 = glm::vec3(a / 2.f, 0.f, -a / (2.f * sqrt(3.f)));
+
+    glm::vec3 d = glm::vec3(0.f, 1.f, 0.f);
+
+    glm::vec3 P1_, P2_, P3_;
+
+    P1_ = P1 + d;
+    P2_ = P2 + d;
+    P3_ = P3 + d;
+
+    mPrismVertices.push_back(P1);
+    mPrismVertices.push_back(P2);
+    mPrismVertices.push_back(P2_);
+
+    mPrismVertices.push_back(P1);
+    mPrismVertices.push_back(P2_);
+    mPrismVertices.push_back(P1_);
+
+    mPrismVertices.push_back(P2);
+    mPrismVertices.push_back(P3_);
+    mPrismVertices.push_back(P2_);
+
+    mPrismVertices.push_back(P2);
+    mPrismVertices.push_back(P3);
+    mPrismVertices.push_back(P3_);
+
+    mPrismVertices.push_back(P3);
+    mPrismVertices.push_back(P1_);
+    mPrismVertices.push_back(P3_);
+
+    mPrismVertices.push_back(P3);
+    mPrismVertices.push_back(P1);
+    mPrismVertices.push_back(P1_);
 }

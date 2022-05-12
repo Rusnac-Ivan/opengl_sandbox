@@ -38,8 +38,11 @@ public:
 
     glm::vec3 mViewPos;
     bool mReadyToDraw;
-    std::vector<float> mFrames;
+    std::vector<float> mFPS;
 
+
+    std::vector<glm::vec3>		mSphereVertices;
+	std::vector<glm::vec3>		mPrismVertices;
 public:
     View();
     ~View();
@@ -68,6 +71,9 @@ public:
     void OnDestroy();
 
 private:
+
+    void SphereGenerate();
+	void PrismGenerate();
 };
 
 #endif
