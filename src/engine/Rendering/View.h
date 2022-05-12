@@ -26,6 +26,7 @@ private:
 
 public:
     int _viewCount;
+    int _controllerCount;
     glm::mat4 _viewMatrices[2];
     glm::mat4 _projectionMatrices[2];
     glm::mat4 _controllerTransformations[2];

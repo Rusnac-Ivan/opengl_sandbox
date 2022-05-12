@@ -91,7 +91,7 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
             for (WebXRView view : {views[0], views[1]})
             {
                 thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
-                thiz->_viewMatrices[viewIndex] = glm::transpose(glm::make_mat4(view.viewPose.matrix));
+                thiz->_viewMatrices[viewIndex] = glm::make_mat4(headPose->matrix) * glm::make_mat4(view.viewPose.matrix);
                 thiz->_projectionMatrices[viewIndex] = (glm::make_mat4(view.projectionMatrix));
                 ++viewIndex;
             }
@@ -105,10 +105,10 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
             WebXRInputSource sources[maxInputCount];
             WebXRRigidTransform controllersPose[maxInputCount];
 
-			int sourceCount = 0;
-            webxr_get_input_sources(sources, maxInputCount, &sourceCount);
-            
-            for (int i = 0; i < sourceCount; ++i)
+
+            webxr_get_input_sources(sources, maxInputCount, &thiz->_controllerCount);
+
+            for (int i = 0; i < thiz->_controllerCount; ++i)
             {   
                 webxr_get_input_pose(sources + i, controllersPose + i);
 

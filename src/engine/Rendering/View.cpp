@@ -201,7 +201,7 @@ void View::OnInitialize()
     mCubeMap.SetPositiveZ("./resources/cube_maps/yokohama/posz.jpg");
     mCubeMap.SetNegativeZ("./resources/cube_maps/yokohama/negz.jpg");
 
-    mRightController.loadFromFile("./resources/models/controllers/base/controller.glb");
+    mRightController.loadFromFile("./resources/models/controllers/base/generic_controller.glb");
 #endif
 
     gl::CubeMap::Sampler sam;
@@ -247,9 +247,11 @@ void View::OnSceneDraw()
     #endif
 
 
-        glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
+        glm::mat4 rightControllerModel =  glm::scale(glm::mat4(1.0f), glm::vec3(1.f));
 
-        mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
+        for(int i = 0; i < _controllerCount; i++)
+            mRightController.draw(mProgram.get(), _controllerMatrix[i] * rightControllerModel);
+        
 
         mProgram->StopUsing();
 
@@ -464,7 +466,7 @@ void View::OnResize(int width, int height)
 */
 
 #ifdef __EMSCRIPTEN__
-    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR);
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR);
 #endif
 }
 
