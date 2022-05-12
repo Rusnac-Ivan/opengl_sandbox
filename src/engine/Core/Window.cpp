@@ -92,9 +92,9 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
             {
                 thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
 
-                thiz->_viewMatrices[viewIndex] = glm::make_mat4(view.viewPose.matrix);
+                thiz->_viewMatrices[viewIndex] = glm::transpose(glm::make_mat4(view.viewPose.matrix));
 
-                thiz->_projectionMatrices[viewIndex] = glm::make_mat4(view.projectionMatrix);
+                thiz->_projectionMatrices[viewIndex] = (glm::make_mat4(view.projectionMatrix));
 
                 // printf("{x:%d, y:%d, w:%d, h:%d}\n", view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]);
 
@@ -116,11 +116,11 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
             for (int i = 0; i < sourcesCount; ++i)
             {   
                 webxr_get_input_pose(sources + i, controllersPose + i);
-                //printf("WebXRInputSource id: %d, WebXRHandedness: %d, WebXRTargetRayMode: %d\n", sources[i].id, sources[i].handedness, sources[i].targetRayMode);
-                thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
+
+                thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]) + thiz->_headPos;
                 thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2], controllersPose[i].orientation[3]);
-                thiz->_controllerDir[i] = glm::vec3(glm::mat3_cast(thiz->_controllerOrientation[i]) * glm::vec3(0.f, 0.f, -1.f));
-                thiz->_controllerMatrix[i] = glm::make_mat4(controllersPose[i].matrix);
+                //thiz->_controllerDir[i] = glm::vec3(glm::mat3_cast(thiz->_controllerOrientation[i]) * glm::vec3(0.f, 0.f, -1.f));
+                thiz->_controllerMatrix[i] = (glm::make_mat4(controllersPose[i].matrix));
             }
 
 			if (thiz->mReadyToDraw)

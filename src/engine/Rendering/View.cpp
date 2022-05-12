@@ -16,6 +16,7 @@
 #endif
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
+#include <Rendering/imgui_impl_3d_to_2d.h>
 
 // https://github.com/KhronosGroup/glTF
 
@@ -102,7 +103,7 @@ void View::OnInitialize()
 
          void main() {
              FragPos = vec3(model * vec4(aPos, 1.0));
-             Normal = aNorm;
+             Normal = mat3(transpose(inverse(model))) * aNorm;
              UV0 = aUV0;
              gl_Position = projection * view * vec4(FragPos, 1.0);
          });
@@ -124,7 +125,7 @@ void View::OnInitialize()
          uniform vec3 lightPos;
          uniform vec3 viewPos;
          uniform vec3 lightColor;
-         // uniform vec3 objectColor;
+         const vec3 objectColor = vec3(0.5, 0.5, 0.5);
 
          void main() {
              // ambient
@@ -144,10 +145,14 @@ void View::OnInitialize()
              float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
              vec3 specular = specularStrength * spec * lightColor;
 
-             vec4 objectColor = texture(uBaseColor, UV0);
+             vec4 baseColor;
+             
+             {
+                 baseColor = vec4(objectColor, 1.0);
+             }
 
-             vec3 result = (ambient + diffuse + specular) * objectColor.rgb * 2.0;
-             FragColor = vec4(result, objectColor.a);
+             vec3 result = (ambient + diffuse + specular) * baseColor.rgb * 2.0;
+             FragColor = vec4(result, baseColor.a);
          });
     int fragShSize = strlen(fragShader);
 
@@ -172,42 +177,21 @@ void View::OnInitialize()
     mProgram->SetMatrix4(mProgram->Uniform("model"), model);
     mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
     mProgram->SetFloat3(mProgram->Uniform("lightColor"), glm::vec3(1.f, 1.f, 1.f));
-    // mProgram->SetFloat3(mProgram->Uniform("objectColor"), glm::vec3(0.714f, 0.4284, 0.18144));
     mProgram->StopUsing();
 
-    // mMenuVBO.Data(4, sizeof(vertices), vertices, gl::Buffer::UsageMode::STATIC_DRAW);
-    // mMenuVBO.AttributesPattern({gl::VertexBuffer::AttribType::POSITION, gl::VertexBuffer::AttribType::NORMAL, gl::VertexBuffer::AttribType::UV_0 });
-    // mMenuEBO.Data(sizeof(indices), indices, DataType::UNSIGNED_INT, gl::Buffer::UsageMode::STATIC_DRAW);
-    // mMenuEBO.SetIndexCount(6);
 
-    // mMenuVAO.LinkVBO(mProgram.get(), &mMenuVBO);
-    // mMenuVAO.LinkEBO(&mMenuEBO);
-
-    // mFBMenu.Init(nullptr, mMenuWidth, mMenuHeight);
-    //
-    // gl::Texture2D::Sampler sampler;
-    // sampler.minFilter = gl::Texture::FilterMode::LINEAR;
-    // sampler.magFilter = gl::Texture::FilterMode::LINEAR;
-    // sampler.wrapModeS = gl::Texture::WrapMode::CLAMP_TO_EDGE;
-    // sampler.wrapModeT = gl::Texture::WrapMode::CLAMP_TO_EDGE;
-    // mMenuColor = mFBMenu.AttachTexture(gl::AttachType::COLOR0, gl::Texture::Format::RGBA, gl::Texture::Format::RGBA, DataType::UNSIGNED_BYTE, sampler);
-
-    /*if (!mFBMenu.CheckFramebufferStatus())
-    {
-        assert("Failed frame buffer !");
-    }*/
 
     mMenu3D.Create(500.f, 700.f);
 
 #ifndef __EMSCRIPTEN__
-    mCubeMap.SetPositiveX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
-    mCubeMap.SetNegativeX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
-    mCubeMap.SetPositiveY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
-    mCubeMap.SetNegativeY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
-    mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
-    mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
+    mCubeMap.SetPositiveX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
+    mCubeMap.SetNegativeX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
+    mCubeMap.SetPositiveY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
+    mCubeMap.SetNegativeY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
+    mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
+    mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mRightController.loadFromFile("D:\\CPP\\opengl_sandbox\\resources\\models\\controllers\\base\\controller.glb");
+    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\controller.glb");
     // mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
@@ -246,14 +230,6 @@ void View::OnSceneDraw()
     mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
 #endif
 
-    glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
-
-    mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
-
-    // glm::mat4 model1 = glm::scale(model, glm::vec3(1.f, 5.f, 5.f));
-
-    // mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
-
     gl::Pipeline::EnableBlending();
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
 
@@ -272,6 +248,12 @@ void View::OnSceneDraw()
     mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
 #endif
 
+
+    glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
+    rightControllerModel = glm::translate(rightControllerModel, glm::vec3(0.5));
+
+    mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
+
     mProgram->StopUsing();
 
 #ifndef __EMSCRIPTEN__
@@ -287,13 +269,6 @@ void View::OnSceneDraw()
 
 void View::OnGUIDraw()
 {
-    {
-#ifndef __EMSCRIPTEN__
-        mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
-#else
-        mMenu3D.RenderIn(_controllerPos[0], _controllerDir[0], mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
-#endif
-    }
     {
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -333,7 +308,7 @@ void View::OnGUIDraw()
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7f, 0.f, 0.f, 0.5f));
         }
 
-        ImGui::SetNextWindowSize(ImVec2(390.f, 160.f));
+        ImGui::SetNextWindowSize(ImVec2(390.f, 200.f));
         ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
         ImGui::Begin("FPS Graph", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
         {
@@ -360,6 +335,15 @@ void View::OnGUIDraw()
 
             std::string intersectPointStr("IntersectPoint:{" + std::to_string(mMenu3D.GetIntersectPoint().x) + ", " + std::to_string(mMenu3D.GetIntersectPoint().y) + ", " + std::to_string(mMenu3D.GetIntersectPoint().z) + "}");
             ImGui::Text(intersectPointStr.c_str());
+
+            std::string headPosStr("HeadPos:{" + std::to_string(_headPos.x) + ", " + std::to_string(_headPos.y) + ", " + std::to_string(_headPos.z) + "}");
+            ImGui::Text(headPosStr.c_str());
+
+            std::string Viewport0Str("Viewport[0]:{" + std::to_string(_viewports[0].x) + ", " + std::to_string(_viewports[0].y) + ", " + std::to_string(_viewports[0].z) + ", " + std::to_string(_viewports[0].w) + "}");
+            ImGui::Text(Viewport0Str.c_str());
+            
+            std::string Viewport1Str("Viewport[1]:{" + std::to_string(_viewports[1].x) + ", " + std::to_string(_viewports[1].y) + ", " + std::to_string(_viewports[1].z) + ", " + std::to_string(_viewports[1].w) + "}");
+            ImGui::Text(Viewport1Str.c_str());
         }
         ImGui::End();
         ImGui::PopStyleColor();
@@ -368,7 +352,15 @@ void View::OnGUIDraw()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
+
     
+    {
+#ifndef __EMSCRIPTEN__
+        mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
+#else
+        mMenu3D.RenderIn(_controllerPos[0], _controllerDir[0], mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
+#endif
+    }
 }
 
 void View::OnFinalize()
