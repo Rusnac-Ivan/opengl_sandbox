@@ -442,10 +442,11 @@ void View::OnResize(int width, int height)
     mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
 #endif
 
-    mProgram->StopUsing();*/
+    mProgram->StopUsing();
+*/
+
 #ifdef __EMSCRIPTEN__
-    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
-    printf("View::OnResize\n");
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR);
 #endif
 }
 

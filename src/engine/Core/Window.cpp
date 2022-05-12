@@ -83,7 +83,7 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
         /* Frame callback */
         [](void *userData, int time, WebXRRigidTransform *headPose, WebXRView views[2], int viewCount)
         {
-            printf("webxr_init: Frame callback\n");
+            //printf("webxr_init: Frame callback\n");
 
             View *thiz = ((Window*)userData)->mView.get();
 
