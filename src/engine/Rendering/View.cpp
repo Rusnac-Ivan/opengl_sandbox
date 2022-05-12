@@ -125,7 +125,7 @@ void View::OnInitialize()
          uniform vec3 lightPos;
          uniform vec3 viewPos;
          uniform vec3 lightColor;
-         const vec3 objectColor = vec3(0.5, 0.5, 0.5);
+         const vec3 objectColor = vec3(0.3, 0.3, 0.3);
 
          void main() {
              // ambient
@@ -218,53 +218,53 @@ void View::OnInitialize()
 
 void View::OnSceneDraw()
 {
-    gl::RenderContext::SetViewport(mWidth, mHeight);
-    gl::RenderContext::SetClearColor(.3f, .5f, .8f, 1.f);
-    gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
-
-    mProgram->Use();
-
-#ifndef __EMSCRIPTEN__
-    mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
-#else
-    mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
-#endif
-
     gl::Pipeline::EnableBlending();
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
+    gl::RenderContext::SetClearColor(.3f, .5f, .8f, 1.f);
 
-#ifndef __EMSCRIPTEN__
-    mViewPos = mCamera.GetPosition();
-    mProgram->SetFloat3(mProgram->Uniform("lightPos"), mCamera.GetPosition());
-    mProgram->SetFloat3(mProgram->Uniform("viewPos"), mCamera.GetPosition());
-    mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
-    mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+    gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
 
-#else
-    mViewPos = _headPos;
-    mProgram->SetFloat3(mProgram->Uniform("lightPos"), _headPos);
-    mProgram->SetFloat3(mProgram->Uniform("viewPos"), _headPos);
-    mProgram->SetMatrix4(mProgram->Uniform("view"), this->_viewMatrices[0]);
-    mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[0]);
-#endif
+    for(int i = 0; i< _viewCount; i++)
+    {
+        gl::RenderContext::SetViewport(_viewports[i].x, _viewports[i].y, _viewports[i].z, _viewports[i].w);
+        
+
+        mProgram->Use();
+
+    #ifndef __EMSCRIPTEN__
+        mViewPos = mCamera.GetPosition();
+        mProgram->SetFloat3(mProgram->Uniform("lightPos"), mCamera.GetPosition());
+        mProgram->SetFloat3(mProgram->Uniform("viewPos"), mCamera.GetPosition());
+        mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
+        mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
+
+    #else
+        mViewPos = _headPos;
+        mProgram->SetFloat3(mProgram->Uniform("lightPos"), _headPos);
+        mProgram->SetFloat3(mProgram->Uniform("viewPos"), _headPos);
+        mProgram->SetMatrix4(mProgram->Uniform("view"), this->_viewMatrices[i]);
+        mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[i]);
+    #endif
 
 
-    glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
-    rightControllerModel = glm::translate(rightControllerModel, glm::vec3(0.5));
+        glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
 
-    mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
+        mRightController.draw(mProgram.get(), _controllerMatrix[0] * rightControllerModel);
 
-    mProgram->StopUsing();
+        mProgram->StopUsing();
 
-#ifndef __EMSCRIPTEN__
-    mCubeMap.Draw(mCamera.GetViewMat(), mCamera.GetProjectMat());
-    mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
-#else
-    mCubeMap.Draw(this->_viewMatrices[0], this->_projectionMatrices[0]);
-    mMenu3D.RenderOut(this->_projectionMatrices[0] * this->_viewMatrices[0]);
-#endif
+    #ifndef __EMSCRIPTEN__
+        mCubeMap.Draw(mCamera.GetViewMat(), mCamera.GetProjectMat());
+        mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
+        mCamera.Update();
+    #else
 
-    mCamera.Update();
+        mCubeMap.Draw(this->_viewMatrices[i], this->_projectionMatrices[i]);
+        mMenu3D.RenderOut(this->_projectionMatrices[i] * this->_viewMatrices[i]);
+    #endif
+    }
+        
+    
 }
 
 void View::OnGUIDraw()
@@ -308,7 +308,7 @@ void View::OnGUIDraw()
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7f, 0.f, 0.f, 0.5f));
         }
 
-        ImGui::SetNextWindowSize(ImVec2(390.f, 200.f));
+        ImGui::SetNextWindowSize(ImVec2(500.f, 200.f));
         ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
         ImGui::Begin("FPS Graph", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav);
         {
@@ -344,6 +344,24 @@ void View::OnGUIDraw()
             
             std::string Viewport1Str("Viewport[1]:{" + std::to_string(_viewports[1].x) + ", " + std::to_string(_viewports[1].y) + ", " + std::to_string(_viewports[1].z) + ", " + std::to_string(_viewports[1].w) + "}");
             ImGui::Text(Viewport1Str.c_str());
+
+            std::string viewCountStr("viewCount: " + std::to_string(_viewCount));
+            ImGui::Text(viewCountStr.c_str());
+
+            
+            for(int v = 0; v<_viewCount; v++)
+            {
+                std::string vM = "{";
+                for(int i = 0; i < 4; i++)
+                {
+                    for(int j = 0; j < 4; j++)
+                        vM += std::to_string(_viewMatrices[v][i][j]) + ", ";
+                }
+                vM += "}";
+
+                ImGui::Text(vM.c_str());
+            }
+            
         }
         ImGui::End();
         ImGui::PopStyleColor();

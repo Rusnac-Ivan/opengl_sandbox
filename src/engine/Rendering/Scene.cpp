@@ -725,7 +725,8 @@ namespace Scene
 	{
 		program->Use();
 		for (auto& node : nodes) {
-			program->SetMatrix4(program->Uniform("model"), node->getMatrix() * model);
+			program->SetMatrix4(program->Uniform("model"), model * node->getMatrix());
+			//program->SetMatrix4(program->Uniform("model"), model);
 			drawNode(program, node);
 		}
 	}

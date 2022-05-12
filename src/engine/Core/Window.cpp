@@ -83,43 +83,37 @@ void Window::Create(uint32_t width, uint32_t height, const char* windowName)
         /* Frame callback */
         [](void *userData, int time, WebXRRigidTransform *headPose, WebXRView views[2], int viewCount)
         {
-            //printf("webxr_init: Frame callback\n");
-
             View *thiz = ((Window*)userData)->mView.get();
+
+			thiz->_viewCount = viewCount;
 
             int viewIndex = 0;
             for (WebXRView view : {views[0], views[1]})
             {
                 thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
-
                 thiz->_viewMatrices[viewIndex] = glm::transpose(glm::make_mat4(view.viewPose.matrix));
-
                 thiz->_projectionMatrices[viewIndex] = (glm::make_mat4(view.projectionMatrix));
-
-                // printf("{x:%d, y:%d, w:%d, h:%d}\n", view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]);
-
                 ++viewIndex;
             }
+
             if (headPose)
             {
                 thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
-                //thiz->_controlleOrientation = glm::quat(headPose->orientation[0], headPose->orientation[1], headPose->orientation[2], headPose->orientation[3]);
-                //thiz->_controllerDir = glm::mat3_cast(thiz->_controlleOrientation) * glm::vec3(0.f, 0.f, -1.f);
             }
 
             constexpr int maxInputCount = 2;
             WebXRInputSource sources[maxInputCount];
             WebXRRigidTransform controllersPose[maxInputCount];
-            int sourcesCount = 0;
-            webxr_get_input_sources(sources, maxInputCount, &sourcesCount);
+
+			int sourceCount = 0;
+            webxr_get_input_sources(sources, maxInputCount, &sourceCount);
             
-            for (int i = 0; i < sourcesCount; ++i)
+            for (int i = 0; i < sourceCount; ++i)
             {   
                 webxr_get_input_pose(sources + i, controllersPose + i);
 
                 thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]) + thiz->_headPos;
                 thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2], controllersPose[i].orientation[3]);
-                //thiz->_controllerDir[i] = glm::vec3(glm::mat3_cast(thiz->_controllerOrientation[i]) * glm::vec3(0.f, 0.f, -1.f));
                 thiz->_controllerMatrix[i] = (glm::make_mat4(controllersPose[i].matrix));
             }
 
