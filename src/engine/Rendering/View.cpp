@@ -456,6 +456,6 @@ void View::OnResize(int width, int height)
     mProgram->StopUsing();
 */
 
-    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL, WEBXR_SESSION_FEATURE_LOCAL);
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR);
     printf("View::OnResize\n");
 }
