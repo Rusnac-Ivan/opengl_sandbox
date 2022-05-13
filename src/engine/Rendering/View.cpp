@@ -36,6 +36,9 @@ Scene::Model mRightController;
 
 View::View()
 {
+    _viewCount = 1;
+    _controllerCount = 1;
+
     mReadyToDraw = false;
     mMousePos = glm::vec2();
     mFPS.reserve(100);
@@ -191,7 +194,7 @@ void View::OnInitialize()
     mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
     mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\controller.glb");
+    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
     // mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
@@ -226,7 +229,11 @@ void View::OnSceneDraw()
 
     for(int i = 0; i< _viewCount; i++)
     {
+    #ifndef __EMSCRIPTEN__
+        gl::RenderContext::SetViewport(mWidth, mHeight);
+    #else
         gl::RenderContext::SetViewport(_viewports[i].x, _viewports[i].y, _viewports[i].z, _viewports[i].w);
+    #endif
         
 
         mProgram->Use();
@@ -250,7 +257,11 @@ void View::OnSceneDraw()
         glm::mat4 rightControllerModel =  glm::scale(glm::mat4(1.0f), glm::vec3(1.f));
 
         for(int i = 0; i < _controllerCount; i++)
+#ifndef __EMSCRIPTEN__
+            mRightController.draw(mProgram.get(), rightControllerModel);
+#else
             mRightController.draw(mProgram.get(), _controllerMatrix[i] * rightControllerModel);
+#endif
         
 
         mProgram->StopUsing();

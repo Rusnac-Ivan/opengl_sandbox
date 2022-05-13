@@ -316,7 +316,7 @@ namespace Scene
 				const tinygltf::Buffer& texCoordBuffer = model.buffers[texCoordView.buffer];
 
 				const float* bufferTexCoord = reinterpret_cast<const float*>(&texCoordBuffer.data[texCoordView.byteOffset + texCoordAccessor.byteOffset]);
-				const int texCoordByteStride = normAccessor.ByteStride(texCoordView) ? (texCoordAccessor.ByteStride(texCoordView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC3);
+				const int texCoordByteStride = normAccessor.ByteStride(texCoordView) ? (texCoordAccessor.ByteStride(texCoordView) / sizeof(float)) : tinygltf::GetTypeSizeInBytes(TINYGLTF_TYPE_VEC2);
 
 
 				std::unique_ptr<gl::VertexBuffer> vertex_buffer = std::make_unique<gl::VertexBuffer>();
@@ -711,8 +711,8 @@ namespace Scene
 			for (Primitive* primitive : node->mesh->primitives) 
 			{
 
-				primitive->material.baseColorTexture->Bind();
-				//vkCmdDrawIndexed(commandBuffer, primitive->indexCount, 1, primitive->firstIndex, 0, 0);
+				if(primitive->material.baseColorTexture)
+					primitive->material.baseColorTexture->Bind();
 				primitive->VAO->Draw(primitive->primitiveMode);
 			}
 		}
