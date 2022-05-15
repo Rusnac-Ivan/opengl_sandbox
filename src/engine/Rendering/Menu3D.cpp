@@ -293,6 +293,6 @@ void Menu3D::RenderOut(const glm::mat4 &proj_view)
     mProgram->SetMatrix4(mProgram->Uniform("proj_view"), proj_view);
     mProgram->SetMatrix4(mProgram->Uniform("model"), model);
     mColorBuff->Bind();
-    mVAO.Draw(gl::Primitive::TRIANGLES);
+    mVAO.Draw(gl::Primitive::TRIANGLES, 6, DataType::UNSIGNED_INT, NULL);
     mProgram->StopUsing();
 }

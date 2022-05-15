@@ -138,7 +138,7 @@ namespace gl
 		if (mProgram)
 		{
 			mProgram->Use();
-			mQuadVAO.Draw(Primitive::TRIANGLES);
+			mQuadVAO.Draw(Primitive::TRIANGLES, 6, DataType::UNSIGNED_INT, NULL);
 			mProgram->StopUsing();
 		}
 	}

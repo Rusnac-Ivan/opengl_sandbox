@@ -80,16 +80,23 @@ namespace Scene
 
 	struct Primitive {
 
-		std::unique_ptr<gl::VertexBuffer> vertices;
-		std::unique_ptr<gl::IndexBuffer> indices;
-		std::unique_ptr<gl::VertexArray> VAO;
+		uint32_t firstIndex;
+		uint32_t indexCount;
+		uint32_t vertexCount;
+
+		//std::unique_ptr<gl::VertexBuffer> vertices;
+		//std::unique_ptr<gl::IndexBuffer> indices;
+		//std::unique_ptr<gl::VertexArray> VAO;
 
 		gl::Primitive primitiveMode;
 
 		Material& material;
 		bool hasIndices;
 		BoundingBox bb;
-		Primitive(std::unique_ptr<gl::VertexBuffer>& vertex_buffer, std::unique_ptr<gl::IndexBuffer>& index_buffer, std::unique_ptr<gl::VertexArray>& vao, Material& material);
+		//Primitive(std::unique_ptr<gl::VertexBuffer>& vertex_buffer, std::unique_ptr<gl::IndexBuffer>& index_buffer, std::unique_ptr<gl::VertexArray>& vao, Material& material);
+		Primitive(gl::Primitive mode, uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material& material) : primitiveMode(mode), firstIndex(firstIndex), indexCount(indexCount), vertexCount(vertexCount), material(material) {
+			hasIndices = indexCount > 0;
+		};
 		void setBoundingBox(glm::vec3 min, glm::vec3 max);
 	};
 
@@ -155,6 +162,10 @@ namespace Scene
 		//gl::IndexBuffer indices;
 
 		//gl::VertexArray VAO;
+
+		std::unique_ptr<gl::VertexBuffer> VBO;
+		std::unique_ptr<gl::IndexBuffer> EBO;
+		std::unique_ptr<gl::VertexArray> VAO;
 
 		glm::mat4 aabb;
 

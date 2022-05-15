@@ -76,7 +76,7 @@ namespace gl
 		this->UnBind();
 	}
 
-	void VertexArray::Draw(const Primitive& mode)
+	void VertexArray::Draw(const Primitive mode, size_t count, DataType type, const void* indices)
 	{
 		this->Bind();
 		if (!mEBO)
@@ -85,12 +85,12 @@ namespace gl
 		}
 		else
 		{
-			GL(DrawElements(static_cast<GLenum>(mode), mEBO->GetIndexCount(), (GLenum)mEBO->GetDataType(), nullptr));
+			GL(DrawElements(static_cast<GLenum>(mode), count, (GLenum)type, indices));
 		}
 		this->UnBind();
 	}
 
-	void VertexArray::Draw(const Primitive& mode, const unsigned int& instanceCount)
+	void VertexArray::Draw(const Primitive mode, const unsigned int instanceCount)
 	{
 		this->Bind();
 		if (!mEBO)

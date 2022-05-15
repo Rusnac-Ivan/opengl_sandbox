@@ -90,4 +90,6 @@ unsigned short DataSize(const DataType& dataType);
     #define GLSL(str) (const char *)"#version 330 core\n" #str
 #endif
 
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
 #endif

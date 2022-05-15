@@ -43,8 +43,8 @@ namespace gl
 		//void UnLinkVBO(VertexBuffer& buffer);
 		void LinkEBO(IndexBuffer* buffer);
 
-		void Draw(const Primitive& mode);
-		void Draw(const Primitive& mode, const unsigned int& instanceCount);
+		void Draw(const Primitive mode, size_t count, DataType type, const void* indices);
+		void Draw(const Primitive mode, const unsigned int instanceCount);
 
 		//void SetAttributePointer(const unsigned short &layoutLocation, const unsigned short &attribSize, const DataType &dtaType, const bool &normalize, const unsigned short &strideSize, const void *pointer);
 		//void EnableAttribute(const unsigned short &layoutLocation);

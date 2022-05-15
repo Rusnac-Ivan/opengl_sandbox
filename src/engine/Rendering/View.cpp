@@ -128,6 +128,7 @@ void View::OnInitialize()
          uniform vec3 lightPos;
          uniform vec3 viewPos;
          uniform vec3 lightColor;
+
          const vec3 objectColor = vec3(0.3, 0.3, 0.3);
 
          void main() {
@@ -149,7 +150,7 @@ void View::OnInitialize()
              vec3 specular = specularStrength * spec * lightColor;
 
              vec4 baseColor;
-             
+
              {
                  baseColor = vec4(objectColor, 1.0);
              }
@@ -182,19 +183,17 @@ void View::OnInitialize()
     mProgram->SetFloat3(mProgram->Uniform("lightColor"), glm::vec3(1.f, 1.f, 1.f));
     mProgram->StopUsing();
 
-
-
     mMenu3D.Create(500.f, 700.f);
 
 #ifndef __EMSCRIPTEN__
-    mCubeMap.SetPositiveX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
-    mCubeMap.SetNegativeX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
-    mCubeMap.SetPositiveY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
-    mCubeMap.SetNegativeY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
-    mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
-    mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
+    mCubeMap.SetPositiveX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
+    mCubeMap.SetNegativeX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
+    mCubeMap.SetPositiveY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
+    mCubeMap.SetNegativeY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
+    mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
+    mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
+    mRightController.loadFromFile("D:\\CPP\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
     // mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
@@ -227,62 +226,57 @@ void View::OnSceneDraw()
 
     gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
 
-    for(int i = 0; i< _viewCount; i++)
+    for (int i = 0; i < _viewCount; i++)
     {
-    #ifndef __EMSCRIPTEN__
+#ifndef __EMSCRIPTEN__
         gl::RenderContext::SetViewport(mWidth, mHeight);
-    #else
+#else
         gl::RenderContext::SetViewport(_viewports[i].x, _viewports[i].y, _viewports[i].z, _viewports[i].w);
-    #endif
-        
+#endif
 
         mProgram->Use();
 
-    #ifndef __EMSCRIPTEN__
+#ifndef __EMSCRIPTEN__
         mViewPos = mCamera.GetPosition();
         mProgram->SetFloat3(mProgram->Uniform("lightPos"), mCamera.GetPosition());
         mProgram->SetFloat3(mProgram->Uniform("viewPos"), mCamera.GetPosition());
         mProgram->SetMatrix4(mProgram->Uniform("view"), mCamera.GetViewMat());
         mProgram->SetMatrix4(mProgram->Uniform("projection"), mCamera.GetProjectMat());
 
-    #else
+#else
         mViewPos = _headPos;
         mProgram->SetFloat3(mProgram->Uniform("lightPos"), _headPos);
         mProgram->SetFloat3(mProgram->Uniform("viewPos"), _headPos);
         mProgram->SetMatrix4(mProgram->Uniform("view"), this->_viewMatrices[i]);
         mProgram->SetMatrix4(mProgram->Uniform("projection"), this->_projectionMatrices[i]);
-    #endif
+#endif
 
+        glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.f));
 
-        glm::mat4 rightControllerModel =  glm::scale(glm::mat4(1.0f), glm::vec3(1.f));
-
-        for(int i = 0; i < _controllerCount; i++)
+        for (int i = 0; i < _controllerCount; i++)
 #ifndef __EMSCRIPTEN__
             mRightController.draw(mProgram.get(), rightControllerModel);
 #else
             mRightController.draw(mProgram.get(), _controllerMatrix[i] * rightControllerModel);
 #endif
-        
 
         mProgram->StopUsing();
 
-    #ifndef __EMSCRIPTEN__
+#ifndef __EMSCRIPTEN__
         mCubeMap.Draw(mCamera.GetViewMat(), mCamera.GetProjectMat());
         mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
         mCamera.Update();
-    #else
+#else
 
         mCubeMap.Draw(this->_viewMatrices[i], this->_projectionMatrices[i]);
         mMenu3D.RenderOut(this->_projectionMatrices[i] * this->_viewMatrices[i]);
-    #endif
+#endif
     }
-        
-    
 }
 
 void View::OnGUIDraw()
 {
-    {
+    /*{
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -354,27 +348,25 @@ void View::OnGUIDraw()
 
             std::string Viewport0Str("Viewport[0]:{" + std::to_string(_viewports[0].x) + ", " + std::to_string(_viewports[0].y) + ", " + std::to_string(_viewports[0].z) + ", " + std::to_string(_viewports[0].w) + "}");
             ImGui::Text(Viewport0Str.c_str());
-            
+
             std::string Viewport1Str("Viewport[1]:{" + std::to_string(_viewports[1].x) + ", " + std::to_string(_viewports[1].y) + ", " + std::to_string(_viewports[1].z) + ", " + std::to_string(_viewports[1].w) + "}");
             ImGui::Text(Viewport1Str.c_str());
 
             std::string viewCountStr("viewCount: " + std::to_string(_viewCount));
             ImGui::Text(viewCountStr.c_str());
 
-            
-            for(int v = 0; v<_viewCount; v++)
+            for (int v = 0; v < _viewCount; v++)
             {
                 std::string vM = "{";
-                for(int i = 0; i < 4; i++)
+                for (int i = 0; i < 4; i++)
                 {
-                    for(int j = 0; j < 4; j++)
+                    for (int j = 0; j < 4; j++)
                         vM += std::to_string(_viewMatrices[v][i][j]) + ", ";
                 }
                 vM += "}";
 
                 ImGui::Text(vM.c_str());
             }
-            
         }
         ImGui::End();
         ImGui::PopStyleColor();
@@ -382,9 +374,8 @@ void View::OnGUIDraw()
         // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    }
+    }*/
 
-    
     {
 #ifndef __EMSCRIPTEN__
         mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
