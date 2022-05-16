@@ -89,8 +89,8 @@ namespace gl
 			in vec3 TexCoords;
 
 			uniform samplerCube skybox;
-			uniform vec3 viewPos;
-			uniform float uTime = 0.0;
+			//uniform vec3 viewPos;
+			//uniform float uTime = 0.0;
 
 			float hash(float n)
 			{

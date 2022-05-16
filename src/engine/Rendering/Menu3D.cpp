@@ -231,9 +231,18 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
     ImGui::SetNextWindowSize(ImVec2(mWidth, mHeight), ImGuiCond_Always);
     if (ImGui::Begin("My Menu rt5", nullptr))
     {
-        ImGui::Button("Ok", ImVec2(90.f, 30.f));
-        ImGui::Button("Save", ImVec2(90.f, 30.f));
-        ImGui::Button("Cancel", ImVec2(90.f, 30.f));
+        if(ImGui::Button("Ok", ImVec2(90.f, 30.f)))
+        {
+            printf("Button Ok\n");
+        }
+        if(ImGui::Button("Save", ImVec2(90.f, 30.f)))
+        {
+            printf("Button Save\n");
+        }
+        if(ImGui::Button("Cancel", ImVec2(90.f, 30.f)))
+        {
+            printf("Button Cancel\n");
+        }
 
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
 

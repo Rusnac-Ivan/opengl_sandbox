@@ -128,6 +128,27 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 		[](void *userData, int mode)
 		{
 			printf("webxr_init: Session start callback\n");
+			View *thiz = ((Window *)userData)->mView.get();
+			webxr_set_select_callback([](WebXRInputSource *inputSource, void *userData)
+							{ 
+								printf("select_callback\n"); 
+								//ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
+							},
+				userData);
+
+			webxr_set_select_start_callback([](WebXRInputSource *inputSource, void *userData)
+							{ 
+								printf("select_start_callback\n"); 
+								ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
+							},
+				userData);
+
+			webxr_set_select_end_callback([](WebXRInputSource *inputSource, void *userData)
+							{ 
+								printf("select_end_callback\n");
+								ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, 0); 
+							},
+				userData);
 		},
 		/* Session end callback */
 		[](void *userData, int mode)
@@ -143,17 +164,7 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 		/* userData */
 		this);
 
-	webxr_set_select_callback([](WebXRInputSource *inputSource, void *userData)
-							  { printf("select_callback\n"); },
-							  this);
-
-	webxr_set_select_start_callback([](WebXRInputSource *inputSource, void *userData)
-									{ printf("select_start_callback\n"); },
-									this);
-
-	webxr_set_select_end_callback([](WebXRInputSource *inputSource, void *userData)
-								  { printf("select_end_callback\n"); },
-								  this);
+	
 
 	// GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	// const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -314,7 +325,11 @@ void Window::OnInitialize()
 
 	// Setup Platform/Renderer backends
 	// ImGui_ImplGlfw_InitForOpenGL(mGLFWWindow, true);
+#ifndef __EMSCRIPTEN__
 	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, true);
+#else
+	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
+#endif
 	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
 
 	mView->OnInitialize();
