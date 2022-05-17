@@ -35,8 +35,8 @@ void EventHandler::MouseMoveCallback(GLFWwindow* window, double xpos, double ypo
 
 void EventHandler::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (ImGui::GetIO().WantCaptureMouse)
-		return;
+	//if (ImGui::GetIO().WantCaptureMouse)
+		//return;
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);

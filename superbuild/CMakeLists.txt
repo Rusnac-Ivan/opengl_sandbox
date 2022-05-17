@@ -54,6 +54,11 @@ else()
         BUILD_COMMAND           ""
         INSTALL_COMMAND         ""
     )
+    ExternalProject_Add_Step(emscripten-webxr replace_webxr_js
+        DEPENDEES download
+        DEPENDERS configure
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/patches/webxrjs/library_webxr.js" "${LIBRARIES_PREFIX}/emscripten-webxr/src/emscripten-webxr/library_webxr.js"
+    )
     ExternalProject_Get_property(emscripten-webxr SOURCE_DIR)
     set(EMSCRIPTEN_WEBXR_DIR ${SOURCE_DIR})
 endif()

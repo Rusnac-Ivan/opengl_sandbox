@@ -31,6 +31,11 @@ unsigned int indices[] = {
     0, 2, 3  // second Triangle
 };
 
+
+// mKnightVBO = std::make_unique<gl::VertexBuffer>();
+// mBishopVAO = std::make_unique<gl::VertexArray>();
+// mKnightVAO = std::make_unique<gl::VertexArray>();
+
 Scene::Model mRightController;
 // Scene::Model mLeftController;
 
@@ -45,6 +50,8 @@ View::View()
 
     SphereGenerate();
     PrismGenerate();
+
+    _controllerPos[0] = _controllerPos[1] = glm::vec3();
 }
 View::~View()
 {
@@ -62,6 +69,61 @@ void View::OnDestroy()
 
 void View::OnInitialize()
 {
+    const char *rayVertShader = GLSL(
+#ifdef GL_ES
+        \nprecision highp int; \n
+        precision highp float; \n
+#endif \n
+        layout(location = 0) in vec3 aPos;
+
+         out vec3 FragPos;
+
+         uniform mat4 model;
+         uniform mat4 view;
+         uniform mat4 projection;
+
+         void main() {
+             FragPos = vec3(model * vec4(aPos, 1.0));
+
+             gl_Position = projection * view * vec4(FragPos, 1.0);
+         });
+
+    int rayVertShSize = strlen(rayVertShader);
+    const char *rayFragShader = GLSL(
+#ifdef GL_ES
+        \nprecision highp int; \n
+        precision highp float; \n
+#endif \n
+        out vec4 FragColor;
+
+         in vec3 FragPos;
+
+         const vec3 objectColor = vec3(0.3, 0.3, 0.3);
+
+         void main() {
+            
+            FragColor = vec4(objectColor, 1.0);
+         });
+    int rayFragShSize = strlen(rayFragShader);
+
+    gl::Shader<gl::ShaderType::VERTEX> rayVertSh;
+    gl::Shader<gl::ShaderType::FRAGMENT> rayFragSh;
+
+    rayVertSh.LoadSources(1, &rayVertShader, &rayVertShSize);
+    rayFragSh.LoadSources(1, &rayFragShader, &rayFragShSize);
+
+    mRayProg.Attach(&rayVertSh, &rayFragSh, NULL);
+
+    mRayProg.Link();
+
+    mRayVBO.Data(mPrismVertices.size(), mPrismVertices.size() * sizeof(glm::vec3), mPrismVertices.data(), gl::Buffer::UsageMode::STATIC_DRAW);
+    mRayVBO.AttributesPattern({gl::VertexBuffer::AttribType::POSITION});
+    
+    mRayVAO.LinkVBO(&mRayProg, &mRayVBO);
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    
     // Menu3D::Initialize();
 
     // mBishopVBO = std::make_unique<gl::VertexBuffer>();
@@ -270,7 +332,84 @@ void View::OnSceneDraw()
 
         mCubeMap.Draw(this->_viewMatrices[i], this->_projectionMatrices[i]);
         mMenu3D.RenderOut(this->_projectionMatrices[i] * this->_viewMatrices[i]);
+
 #endif
+
+        glm::vec3 int_point = mMenu3D.GetIntersectPoint();
+        glm::vec3 dir = int_point - _controllerPos[0];
+        float scale = glm::length(dir);
+        if (scale > 0.f)
+        {
+            dir = glm::normalize(dir);
+
+            glm::mat4 scale_mat(1.f);
+            //scale_mat = glm::scale(scale_mat, glm::vec3(1.f, scale, 1.f));
+
+            scale_mat[0][0] = 1.f;	scale_mat[0][1] = 0.f;		scale_mat[0][2] = 0.f;	scale_mat[0][3] = 0.f;
+            scale_mat[1][0] = 0.f;	scale_mat[1][1] = scale;	scale_mat[1][2] = 0.f;	scale_mat[1][3] = 0.f;
+            scale_mat[2][0] = 0.f;	scale_mat[2][1] = 0.f;		scale_mat[2][2] = 1.f;	scale_mat[2][3] = 0.f;
+            scale_mat[3][0] = 0.f;	scale_mat[3][1] = 0.f;		scale_mat[3][2] = 0.f;	scale_mat[3][3] = 1.f;
+
+            glm::vec3 y_axis = glm::vec3(0.f, 1.f, 0.f);
+
+            float angle = acos(glm::dot(y_axis, dir));
+
+            angle = glm::radians(angle);
+
+            glm::vec3 rot_axis = glm::cross(dir, y_axis);
+
+            glm::mat4 rotation_mat;
+
+
+            glm::vec3 v = rot_axis;
+            v = glm::normalize(v);
+            float x, y, z;
+
+            x = v.x;
+            y = v.y;
+            z = v.z;
+
+
+            //angle *= 3.14159265358979323846 / 180.f;
+            angle = glm::degrees(angle);
+
+            float cos_a = cos(angle);
+            float one_minus_cos_a = 1.0f - cos_a;
+            float sin_a = sin(angle);
+
+            rotation_mat[0][0] = one_minus_cos_a * x * x + cos_a;		rotation_mat[0][1] = one_minus_cos_a * x * y - sin_a * z;	rotation_mat[0][2] = one_minus_cos_a * x * z + sin_a * y;	rotation_mat[0][3] = 0.0f;
+            rotation_mat[1][0] = one_minus_cos_a * y * x + sin_a * z;	rotation_mat[1][1] = one_minus_cos_a * y * y + cos_a;		rotation_mat[1][2] = one_minus_cos_a * y * z - sin_a * x;	rotation_mat[1][3] = 0.0f;
+            rotation_mat[2][0] = one_minus_cos_a * z * x - sin_a * y;	rotation_mat[2][1] = one_minus_cos_a * z * y + sin_a * x;	rotation_mat[2][2] = one_minus_cos_a * z * z + cos_a;		rotation_mat[2][3] = 0.0f;
+            rotation_mat[3][0] = 0.0f;									rotation_mat[3][1] = 0.0f;									rotation_mat[3][2] = 0.0f;									rotation_mat[3][3] = 1.f;
+
+
+            glm::mat4 rot_scale_mat;
+
+            rot_scale_mat = rotation_mat * scale_mat;
+            glm::mat4 translate;
+            translate[0][0] = 1.f;			        translate[0][1] = 0.f;			        translate[0][2] = 0.f;			        translate[0][3] = 0.f;
+            translate[1][0] = 0.f;			        translate[1][1] = 1.f;			        translate[1][2] = 0.f;			        translate[1][3] = 0.f;
+            translate[2][0] = 0.f;			        translate[2][1] = 0.f;			        translate[2][2] = 1.f;			        translate[2][3] = 0.f;
+            translate[3][0] = _controllerPos[0].x;	translate[3][1] = _controllerPos[0].y;	translate[3][2] = _controllerPos[0].z;	translate[3][3] = 1.f;
+
+            glm::mat4 transform = translate * rot_scale_mat;
+
+            mRayProg.Use();
+#ifndef __EMSCRIPTEN__
+            mRayProg.SetMatrix4(mRayProg.Uniform("view"), mCamera.GetViewMat());
+            mRayProg.SetMatrix4(mRayProg.Uniform("projection"), mCamera.GetProjectMat());
+#else       
+            mRayProg.SetMatrix4(mRayProg.Uniform("view"), _viewMatrices[i]);
+            mRayProg.SetMatrix4(mRayProg.Uniform("projection"), _projectionMatrices[i]);
+#endif
+            mRayProg.SetMatrix4(mRayProg.Uniform("model"), transform);
+
+            mRayVAO.Draw(gl::Primitive::TRIANGLES, 0, DataType::UNSIGNED_INT, NULL);
+
+            mRayProg.StopUsing();
+        }
+        
+
     }
 }
 
@@ -330,8 +469,8 @@ void View::OnGUIDraw()
             _controllerDir[0] = mCamera.GetLook();
             _controllerPos[0] = mCamera.GetPosition();
 #else
-            std::string controllerOrientationStr("ControlOrienta:{" + std::to_string(_controllerOrientation[0].x) + ", " + std::to_string(_controllerOrientation[0].y) + ", " + std::to_string(_controllerOrientation[0].z) + ", " + std::to_string(_controllerOrientation[0].w) + "}");
-            ImGui::Text(controllerOrientationStr.c_str());
+            //std::string controllerOrientationStr("ControlOrienta:{" + std::to_string(_controllerOrientation[0].x) + ", " + std::to_string(_controllerOrientation[0].y) + ", " + std::to_string(_controllerOrientation[0].z) + ", " + std::to_string(_controllerOrientation[0].w) + "}");
+            //ImGui::Text(controllerOrientationStr.c_str());
 #endif
 
             /*std::string controllerDirStr("ControllerDir:{" + std::to_string(_controllerDir[0].x) + ", " + std::to_string(_controllerDir[0].y) + ", " + std::to_string(_controllerDir[0].z) + "}");

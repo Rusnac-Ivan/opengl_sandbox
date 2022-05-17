@@ -18,6 +18,8 @@ Menu3D::Menu3D()
     if (mObjectCount == 0)
         Initialize();
     mObjectCount++;
+
+    mPoint = glm::vec3();
 }
 
 Menu3D::~Menu3D()

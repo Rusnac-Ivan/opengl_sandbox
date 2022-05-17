@@ -24,6 +24,10 @@ private:
     Menu3D mMenu3D;
     glm::vec2 mMousePos;
 
+    gl::VertexBuffer mRayVBO;
+    gl::VertexArray mRayVAO;
+    gl::Program mRayProg;
+
 public:
     int _viewCount;
     int _controllerCount;
@@ -35,9 +39,10 @@ public:
     glm::quat _headOrientation;
     glm::vec3 _controllerPos[2];
     glm::vec3 _controllerDir[2];
-    glm::quat _controllerOrientation[2];
+    glm::mat4 _controllerOrientation[2];
     glm::mat4 _controllerMatrix[2];
     gl::CubeMap mCubeMap;
+    glm::mat4 _headTransform;
 
     glm::vec3 mViewPos;
     bool mReadyToDraw;
