@@ -2,6 +2,7 @@
 #include <Rendering/imgui_impl_3d_to_2d.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 #ifdef __EMSCRIPTEN__
 #include "webxr.h"
@@ -85,6 +86,15 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 		{
 			View *thiz = ((Window *)userData)->mView.get();
 
+			if (headPose)
+			{
+				thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
+				thiz->_headOrientation = glm::quat(headPose->orientation[0], headPose->orientation[1], headPose->orientation[2], headPose->orientation[3]);
+
+				
+			}
+
+
 			thiz->_viewCount = viewCount;
 
 			int viewIndex = 0;
@@ -92,14 +102,14 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 			{
 				thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
 				thiz->_viewMatrices[viewIndex] = glm::transpose(glm::make_mat4(view.viewPose.matrix));
+
+				//glm::decompose(thiz->_viewMatrices[viewIndex], thiz->scale, thiz->rotation, thiz->translation, thiz->skew, thiz->perspective);
+				
 				thiz->_projectionMatrices[viewIndex] = (glm::make_mat4(view.projectionMatrix));
 				++viewIndex;
 			}
 
-			if (headPose)
-			{
-				thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
-			}
+			
 
 			constexpr int maxInputCount = 2;
 			WebXRInputSource sources[maxInputCount];
@@ -127,6 +137,8 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 		/* Session start callback */
 		[](void *userData, int mode)
 		{
+			webxr_set_projection_params(0.01f, 100.f);
+
 			printf("webxr_init: Session start callback\n");
 			View *thiz = ((Window *)userData)->mView.get();
 			webxr_set_select_callback([](WebXRInputSource *inputSource, void *userData)

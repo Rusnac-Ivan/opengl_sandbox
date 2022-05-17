@@ -32,6 +32,7 @@ public:
     glm::mat4 _controllerTransformations[2];
     glm::vec4 _viewports[2];
     glm::vec3 _headPos;
+    glm::quat _headOrientation;
     glm::vec3 _controllerPos[2];
     glm::vec3 _controllerDir[2];
     glm::quat _controllerOrientation[2];

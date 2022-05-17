@@ -276,7 +276,7 @@ void View::OnSceneDraw()
 
 void View::OnGUIDraw()
 {
-    /*{
+    {
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -334,7 +334,7 @@ void View::OnGUIDraw()
             ImGui::Text(controllerOrientationStr.c_str());
 #endif
 
-            std::string controllerDirStr("ControllerDir:{" + std::to_string(_controllerDir[0].x) + ", " + std::to_string(_controllerDir[0].y) + ", " + std::to_string(_controllerDir[0].z) + "}");
+            /*std::string controllerDirStr("ControllerDir:{" + std::to_string(_controllerDir[0].x) + ", " + std::to_string(_controllerDir[0].y) + ", " + std::to_string(_controllerDir[0].z) + "}");
             ImGui::Text(controllerDirStr.c_str());
 
             std::string controllerPosStr("ControllerPos:{" + std::to_string(_controllerPos[0].x) + ", " + std::to_string(_controllerPos[0].y) + ", " + std::to_string(_controllerPos[0].z) + "}");
@@ -366,7 +366,14 @@ void View::OnGUIDraw()
                 vM += "}";
 
                 ImGui::Text(vM.c_str());
-            }
+            }*/
+
+            std::string headPosStr("HeadPos:{" + std::to_string(_headPos.x) + ", " + std::to_string(_headPos.y) + ", " + std::to_string(_headPos.z) + "}");
+            ImGui::Text(headPosStr.c_str());
+
+            std::string _headOrientationStr("HeadOrient:{" + std::to_string(_headOrientation.x) + ", " + std::to_string(_headOrientation.y) + ", " + std::to_string(_headOrientation.z) + ", " + std::to_string(_headOrientation.w) + "}");
+            ImGui::Text(_headOrientationStr.c_str());
+
         }
         ImGui::End();
         ImGui::PopStyleColor();
@@ -374,7 +381,7 @@ void View::OnGUIDraw()
         // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    }*/
+    }
 
     {
 #ifndef __EMSCRIPTEN__
@@ -468,7 +475,7 @@ void View::OnResize(int width, int height)
 */
 
 #ifdef __EMSCRIPTEN__
-    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR);
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR);
 #endif
 }
 
