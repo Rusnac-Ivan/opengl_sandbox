@@ -6,6 +6,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/ext/matrix_projection.hpp>
+#include <GLObjects/CubeMap.h>
 
 // In a header somewhere.
 
@@ -179,9 +180,9 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
 }
 
 #ifndef __EMSCRIPTEN__
-    void Menu3D::RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4 &view, const glm::mat4 &proj)
+    void Menu3D::RenderIn(gl::CubeMap* cubemap, glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4 &view, const glm::mat4 &proj)
 #else
-    void Menu3D::RenderIn(glm::vec3 controllerPos, glm::vec3 controllerDir, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj)
+    void Menu3D::RenderIn(gl::CubeMap* cubemap, glm::vec3 controllerPos, glm::vec3 controllerDir, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj)
 #endif
 {
     // mouse_pos = glm::vec2(window_size / 2.f);
@@ -245,6 +246,19 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
         {
             printf("Button Cancel\n");
         }
+        float speed = cubemap->GetSpeed();
+        if (ImGui::SliderFloat("Clouds Speed", &speed, 0.f, 1.f, "%.3f"))
+            cubemap->SetSpeed(speed);
+        float amount = cubemap->GetAmount();
+        if (ImGui::SliderFloat("Clouds Amount", &amount, 0.f, 1.f, "%.3f"))
+            cubemap->SetAmount(amount);
+
+        float vert_angle = cubemap->GetVert();
+        if (ImGui::SliderFloat("Sun pos vertical", &vert_angle, -90.f, 90.f, "%.3f"))
+            cubemap->SetVert(vert_angle);
+        float hor_angle = cubemap->GetHoriz();
+        if (ImGui::SliderFloat("Sun pos horizontal", &hor_angle, 0.f, 360.f, "%.3f"))
+            cubemap->SetHoriz(hor_angle);
 
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
 

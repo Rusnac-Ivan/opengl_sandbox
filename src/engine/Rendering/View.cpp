@@ -31,7 +31,6 @@ unsigned int indices[] = {
     0, 2, 3  // second Triangle
 };
 
-
 // mKnightVBO = std::make_unique<gl::VertexBuffer>();
 // mBishopVAO = std::make_unique<gl::VertexArray>();
 // mKnightVAO = std::make_unique<gl::VertexArray>();
@@ -72,9 +71,9 @@ void View::OnInitialize()
     const char *rayVertShader = GLSL(
 #ifdef GL_ES
         \nprecision highp int; \n
-        precision highp float; \n
+             precision highp float; \n
 #endif \n
-        layout(location = 0) in vec3 aPos;
+                 layout(location = 0) in vec3 aPos;
 
          out vec3 FragPos;
 
@@ -92,17 +91,16 @@ void View::OnInitialize()
     const char *rayFragShader = GLSL(
 #ifdef GL_ES
         \nprecision highp int; \n
-        precision highp float; \n
+             precision highp float; \n
 #endif \n
-        out vec4 FragColor;
+                 out vec4 FragColor;
 
          in vec3 FragPos;
 
-         const vec3 objectColor = vec3(0.3, 0.3, 0.3);
+         const vec3 objectColor = vec3(0.0, 1.0, 1.0);
 
          void main() {
-            
-            FragColor = vec4(objectColor, 1.0);
+             FragColor = vec4(objectColor, 0.4);
          });
     int rayFragShSize = strlen(rayFragShader);
 
@@ -118,12 +116,10 @@ void View::OnInitialize()
 
     mRayVBO.Data(mPrismVertices.size(), mPrismVertices.size() * sizeof(glm::vec3), mPrismVertices.data(), gl::Buffer::UsageMode::STATIC_DRAW);
     mRayVBO.AttributesPattern({gl::VertexBuffer::AttribType::POSITION});
-    
+
     mRayVAO.LinkVBO(&mRayProg, &mRayVBO);
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    
     // Menu3D::Initialize();
 
     // mBishopVBO = std::make_unique<gl::VertexBuffer>();
@@ -248,14 +244,14 @@ void View::OnInitialize()
     mMenu3D.Create(500.f, 700.f);
 
 #ifndef __EMSCRIPTEN__
-    mCubeMap.SetPositiveX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
-    mCubeMap.SetNegativeX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
-    mCubeMap.SetPositiveY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
-    mCubeMap.SetNegativeY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
-    mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
-    mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
+    mCubeMap.SetPositiveX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
+    mCubeMap.SetNegativeX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
+    mCubeMap.SetPositiveY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
+    mCubeMap.SetNegativeY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
+    mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
+    mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
+    mRightController.loadFromFile("D:\\CPP\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
     // mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
@@ -316,39 +312,39 @@ void View::OnSceneDraw()
         glm::mat4 rightControllerModel = glm::scale(glm::mat4(1.0f), glm::vec3(1.f));
 
         for (int i = 0; i < _controllerCount; i++)
+        {
 #ifndef __EMSCRIPTEN__
             mRightController.draw(mProgram.get(), rightControllerModel);
 #else
             mRightController.draw(mProgram.get(), _controllerMatrix[i] * rightControllerModel);
 #endif
+        }
 
         mProgram->StopUsing();
 
 #ifndef __EMSCRIPTEN__
-        mCubeMap.Draw(mCamera.GetViewMat(), mCamera.GetProjectMat());
+        mCubeMap.Draw(mCamera.GetPosition(), mCamera.GetViewMat(), mCamera.GetProjectMat());
         mMenu3D.RenderOut(mCamera.GetProjectMat() * mCamera.GetViewMat());
         mCamera.Update();
 #else
 
-        mCubeMap.Draw(this->_viewMatrices[i], this->_projectionMatrices[i]);
+        mCubeMap.Draw(this->_headPos, this->_viewMatrices[i], this->_projectionMatrices[i]);
         mMenu3D.RenderOut(this->_projectionMatrices[i] * this->_viewMatrices[i]);
 
 #endif
 
-        glm::vec3 int_point = mMenu3D.GetIntersectPoint();
-        glm::vec3 dir = int_point - _controllerPos[0];
-        float scale = glm::length(dir);
-        if (scale > 0.f)
+        // glm::vec3 int_point = mMenu3D.GetIntersectPoint();
+        // glm::vec3 dir = int_point - _controllerPos[0];
+        mRayProg.Use();
+        for (int i = 0; i < _controllerCount; i++)
         {
+            glm::vec3 dir = _controllerDir[i];
+            float scale = 1.5f;
+
             dir = glm::normalize(dir);
 
             glm::mat4 scale_mat(1.f);
-            //scale_mat = glm::scale(scale_mat, glm::vec3(1.f, scale, 1.f));
-
-            scale_mat[0][0] = 1.f;	scale_mat[0][1] = 0.f;		scale_mat[0][2] = 0.f;	scale_mat[0][3] = 0.f;
-            scale_mat[1][0] = 0.f;	scale_mat[1][1] = scale;	scale_mat[1][2] = 0.f;	scale_mat[1][3] = 0.f;
-            scale_mat[2][0] = 0.f;	scale_mat[2][1] = 0.f;		scale_mat[2][2] = 1.f;	scale_mat[2][3] = 0.f;
-            scale_mat[3][0] = 0.f;	scale_mat[3][1] = 0.f;		scale_mat[3][2] = 0.f;	scale_mat[3][3] = 1.f;
+            scale_mat = glm::scale(scale_mat, glm::vec3(1.f, scale, 1.f));
 
             glm::vec3 y_axis = glm::vec3(0.f, 1.f, 0.f);
 
@@ -360,7 +356,6 @@ void View::OnSceneDraw()
 
             glm::mat4 rotation_mat;
 
-
             glm::vec3 v = rot_axis;
             v = glm::normalize(v);
             float x, y, z;
@@ -369,53 +364,54 @@ void View::OnSceneDraw()
             y = v.y;
             z = v.z;
 
-
-            //angle *= 3.14159265358979323846 / 180.f;
             angle = glm::degrees(angle);
 
             float cos_a = cos(angle);
             float one_minus_cos_a = 1.0f - cos_a;
             float sin_a = sin(angle);
 
-            rotation_mat[0][0] = one_minus_cos_a * x * x + cos_a;		rotation_mat[0][1] = one_minus_cos_a * x * y - sin_a * z;	rotation_mat[0][2] = one_minus_cos_a * x * z + sin_a * y;	rotation_mat[0][3] = 0.0f;
-            rotation_mat[1][0] = one_minus_cos_a * y * x + sin_a * z;	rotation_mat[1][1] = one_minus_cos_a * y * y + cos_a;		rotation_mat[1][2] = one_minus_cos_a * y * z - sin_a * x;	rotation_mat[1][3] = 0.0f;
-            rotation_mat[2][0] = one_minus_cos_a * z * x - sin_a * y;	rotation_mat[2][1] = one_minus_cos_a * z * y + sin_a * x;	rotation_mat[2][2] = one_minus_cos_a * z * z + cos_a;		rotation_mat[2][3] = 0.0f;
-            rotation_mat[3][0] = 0.0f;									rotation_mat[3][1] = 0.0f;									rotation_mat[3][2] = 0.0f;									rotation_mat[3][3] = 1.f;
-
+            rotation_mat[0][0] = one_minus_cos_a * x * x + cos_a;
+            rotation_mat[0][1] = one_minus_cos_a * x * y - sin_a * z;
+            rotation_mat[0][2] = one_minus_cos_a * x * z + sin_a * y;
+            rotation_mat[0][3] = 0.0f;
+            rotation_mat[1][0] = one_minus_cos_a * y * x + sin_a * z;
+            rotation_mat[1][1] = one_minus_cos_a * y * y + cos_a;
+            rotation_mat[1][2] = one_minus_cos_a * y * z - sin_a * x;
+            rotation_mat[1][3] = 0.0f;
+            rotation_mat[2][0] = one_minus_cos_a * z * x - sin_a * y;
+            rotation_mat[2][1] = one_minus_cos_a * z * y + sin_a * x;
+            rotation_mat[2][2] = one_minus_cos_a * z * z + cos_a;
+            rotation_mat[2][3] = 0.0f;
+            rotation_mat[3][0] = 0.0f;
+            rotation_mat[3][1] = 0.0f;
+            rotation_mat[3][2] = 0.0f;
+            rotation_mat[3][3] = 1.f;
 
             glm::mat4 rot_scale_mat;
 
             rot_scale_mat = rotation_mat * scale_mat;
-            glm::mat4 translate;
-            translate[0][0] = 1.f;			        translate[0][1] = 0.f;			        translate[0][2] = 0.f;			        translate[0][3] = 0.f;
-            translate[1][0] = 0.f;			        translate[1][1] = 1.f;			        translate[1][2] = 0.f;			        translate[1][3] = 0.f;
-            translate[2][0] = 0.f;			        translate[2][1] = 0.f;			        translate[2][2] = 1.f;			        translate[2][3] = 0.f;
-            translate[3][0] = _controllerPos[0].x;	translate[3][1] = _controllerPos[0].y;	translate[3][2] = _controllerPos[0].z;	translate[3][3] = 1.f;
+            glm::mat4 translate = glm::translate(glm::mat4(1.f), _controllerPos[i]);
 
             glm::mat4 transform = translate * rot_scale_mat;
 
-            mRayProg.Use();
 #ifndef __EMSCRIPTEN__
             mRayProg.SetMatrix4(mRayProg.Uniform("view"), mCamera.GetViewMat());
             mRayProg.SetMatrix4(mRayProg.Uniform("projection"), mCamera.GetProjectMat());
-#else       
+#else
             mRayProg.SetMatrix4(mRayProg.Uniform("view"), _viewMatrices[i]);
             mRayProg.SetMatrix4(mRayProg.Uniform("projection"), _projectionMatrices[i]);
 #endif
             mRayProg.SetMatrix4(mRayProg.Uniform("model"), transform);
 
             mRayVAO.Draw(gl::Primitive::TRIANGLES, 0, DataType::UNSIGNED_INT, NULL);
-
-            mRayProg.StopUsing();
         }
-        
-
+        mRayProg.StopUsing();
     }
 }
 
 void View::OnGUIDraw()
 {
-    {
+    /*{
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -469,43 +465,10 @@ void View::OnGUIDraw()
             _controllerDir[0] = mCamera.GetLook();
             _controllerPos[0] = mCamera.GetPosition();
 #else
-            //std::string controllerOrientationStr("ControlOrienta:{" + std::to_string(_controllerOrientation[0].x) + ", " + std::to_string(_controllerOrientation[0].y) + ", " + std::to_string(_controllerOrientation[0].z) + ", " + std::to_string(_controllerOrientation[0].w) + "}");
-            //ImGui::Text(controllerOrientationStr.c_str());
+            // std::string controllerOrientationStr("ControlOrienta:{" + std::to_string(_controllerOrientation[0].x) + ", " + std::to_string(_controllerOrientation[0].y) + ", " + std::to_string(_controllerOrientation[0].z) + ", " + std::to_string(_controllerOrientation[0].w) + "}");
+            // ImGui::Text(controllerOrientationStr.c_str());
 #endif
 
-            /*std::string controllerDirStr("ControllerDir:{" + std::to_string(_controllerDir[0].x) + ", " + std::to_string(_controllerDir[0].y) + ", " + std::to_string(_controllerDir[0].z) + "}");
-            ImGui::Text(controllerDirStr.c_str());
-
-            std::string controllerPosStr("ControllerPos:{" + std::to_string(_controllerPos[0].x) + ", " + std::to_string(_controllerPos[0].y) + ", " + std::to_string(_controllerPos[0].z) + "}");
-            ImGui::Text(controllerPosStr.c_str());
-
-            std::string intersectPointStr("IntersectPoint:{" + std::to_string(mMenu3D.GetIntersectPoint().x) + ", " + std::to_string(mMenu3D.GetIntersectPoint().y) + ", " + std::to_string(mMenu3D.GetIntersectPoint().z) + "}");
-            ImGui::Text(intersectPointStr.c_str());
-
-            std::string headPosStr("HeadPos:{" + std::to_string(_headPos.x) + ", " + std::to_string(_headPos.y) + ", " + std::to_string(_headPos.z) + "}");
-            ImGui::Text(headPosStr.c_str());
-
-            std::string Viewport0Str("Viewport[0]:{" + std::to_string(_viewports[0].x) + ", " + std::to_string(_viewports[0].y) + ", " + std::to_string(_viewports[0].z) + ", " + std::to_string(_viewports[0].w) + "}");
-            ImGui::Text(Viewport0Str.c_str());
-
-            std::string Viewport1Str("Viewport[1]:{" + std::to_string(_viewports[1].x) + ", " + std::to_string(_viewports[1].y) + ", " + std::to_string(_viewports[1].z) + ", " + std::to_string(_viewports[1].w) + "}");
-            ImGui::Text(Viewport1Str.c_str());
-
-            std::string viewCountStr("viewCount: " + std::to_string(_viewCount));
-            ImGui::Text(viewCountStr.c_str());
-
-            for (int v = 0; v < _viewCount; v++)
-            {
-                std::string vM = "{";
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                        vM += std::to_string(_viewMatrices[v][i][j]) + ", ";
-                }
-                vM += "}";
-
-                ImGui::Text(vM.c_str());
-            }*/
 
             std::string headPosStr("HeadPos:{" + std::to_string(_headPos.x) + ", " + std::to_string(_headPos.y) + ", " + std::to_string(_headPos.z) + "}");
             ImGui::Text(headPosStr.c_str());
@@ -513,6 +476,11 @@ void View::OnGUIDraw()
             std::string _headOrientationStr("HeadOrient:{" + std::to_string(_headOrientation.x) + ", " + std::to_string(_headOrientation.y) + ", " + std::to_string(_headOrientation.z) + ", " + std::to_string(_headOrientation.w) + "}");
             ImGui::Text(_headOrientationStr.c_str());
 
+            std::string controllerPos0Str("ControllerPos[0]:{" + std::to_string(_controllerPos[0].x) + ", " + std::to_string(_controllerPos[0].y) + ", " + std::to_string(_controllerPos[0].z) + "}");
+            ImGui::Text(controllerPos0Str.c_str());
+
+            std::string controllerPos1Str("ControllerPos[1]:{" + std::to_string(_controllerPos[1].x) + ", " + std::to_string(_controllerPos[1].y) + ", " + std::to_string(_controllerPos[1].z) + "}");
+            ImGui::Text(controllerPos1Str.c_str());
         }
         ImGui::End();
         ImGui::PopStyleColor();
@@ -520,13 +488,13 @@ void View::OnGUIDraw()
         // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    }
+    }*/
 
     {
 #ifndef __EMSCRIPTEN__
-        mMenu3D.RenderIn(mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
+        mMenu3D.RenderIn(&mCubeMap, mCamera.GetPosition(), mMousePos, glm::vec2(mWidth, mHeight), mCamera.GetViewMat(), mCamera.GetProjectMat());
 #else
-        mMenu3D.RenderIn(_controllerPos[0], _controllerDir[0], mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
+        mMenu3D.RenderIn(&mCubeMap, _controllerPos[0], _controllerDir[0], mMousePos, glm::vec2(mWidth, mHeight), this->_viewMatrices[0], this->_projectionMatrices[0]);
 #endif
     }
 }
@@ -614,7 +582,7 @@ void View::OnResize(int width, int height)
 */
 
 #ifdef __EMSCRIPTEN__
-    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR);
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR);
 #endif
 }
 
@@ -679,7 +647,7 @@ void View::SphereGenerate()
 
 void View::PrismGenerate()
 {
-    float a = 0.03;
+    float a = 0.01;
 
     glm::vec3 P1 = glm::vec3(-a / 2.f, 0.f, -a / (2.f * sqrt(3.f)));
     glm::vec3 P2 = glm::vec3(0.f, 0.f, a / sqrt(3.f));

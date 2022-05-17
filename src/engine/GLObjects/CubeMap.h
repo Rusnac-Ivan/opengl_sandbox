@@ -42,9 +42,53 @@ namespace gl
 		VertexBuffer mVBO;
 		VertexArray mVAO;
 
+		glm::vec3 mSunPos;
+		float mSpeed;
+		float mAmount;
+
+		float mHoriz;
+		float mVert;
+
 	public:
 		CubeMap();
 		~CubeMap();
+
+		void SetSunPos(const glm::vec3& pos) { mSunPos = pos; }
+		void SetSpeed(float speed) { mSpeed = speed; }
+		void SetAmount(float amount) { mAmount = amount; }
+		void SetHoriz(float horiz) 
+		{ 
+			mHoriz = horiz; 
+			float sin_phi = glm::sin(glm::radians(mHoriz));
+			float cos_phi = glm::cos(glm::radians(mHoriz));
+			float sin_theta = glm::sin(glm::radians(mVert));
+			float cos_theta = glm::cos(glm::radians(mVert));
+
+			//mLook = ndVector3(cos_phi * sin_theta, cos_theta, sin_phi * sin_theta) * -1.f;
+			mSunPos = glm::vec3(sin_phi * cos_theta, sin_theta, cos_phi * cos_theta);
+			//mLook.Normalize();
+			mSunPos = glm::normalize(mSunPos);
+		}
+		void SetVert(float vert) 
+		{ 
+			mVert = vert; 
+
+			float sin_phi = glm::sin(glm::radians(mHoriz));
+			float cos_phi = glm::cos(glm::radians(mHoriz));
+			float sin_theta = glm::sin(glm::radians(mVert));
+			float cos_theta = glm::cos(glm::radians(mVert));
+
+			//mLook = ndVector3(cos_phi * sin_theta, cos_theta, sin_phi * sin_theta) * -1.f;
+			mSunPos = glm::vec3(sin_phi * cos_theta, sin_theta, cos_phi * cos_theta);
+			//mLook.Normalize();
+			mSunPos = glm::normalize(mSunPos);
+		}
+
+		glm::vec3 GetSunPos() { return mSunPos; }
+		float GetSpeed() { return mSpeed; }
+		float GetAmount() { return mAmount; }
+		float GetHoriz() { return mHoriz; }
+		float GetVert() { return mVert; }
 
 		void SetPositiveX(std::string file_name);
 		void SetNegativeX(std::string file_name);
@@ -55,7 +99,7 @@ namespace gl
 
 		void SetSampler(const Sampler &sampler);
 
-		void Draw(const glm::mat4 &view, const glm::mat4 &proj);
+		void Draw(const glm::vec3& viewPos, const glm::mat4 &view, const glm::mat4 &proj);
 
 	private:
 	};

@@ -8,6 +8,11 @@
 #include <GLObjects/Framebuffer.h>
 #include <memory>
 
+namespace gl
+{
+	class CubeMap;
+}
+
 class Menu3D
 {
 	gl::VertexBuffer mVBO;
@@ -39,9 +44,9 @@ public:
 
 	void Create(float width, float height);
 #ifndef __EMSCRIPTEN__
-	void RenderIn(glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj);
+	void RenderIn(gl::CubeMap* cubemap, glm::vec3 cam_pos, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj);
 #else
-	void RenderIn(glm::vec3 controllerPos, glm::vec3 controllerDir, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj);
+	void RenderIn(gl::CubeMap* cubemap, glm::vec3 controllerPos, glm::vec3 controllerDir, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj);
 #endif
 	void RenderOut(const glm::mat4& view_proj);
 

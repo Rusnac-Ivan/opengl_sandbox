@@ -58,8 +58,11 @@ namespace gl
 		-1.0f, -1.0f, 1.0f,
 		1.0f, -1.0f, 1.0f};
 
-	CubeMap::CubeMap()
+	CubeMap::CubeMap() : mSunPos(glm::normalize(glm::vec3(1.f, 1.f, 0.f))), mSpeed(0.5f), mAmount(0.5f)
 	{
+		SetVert(60.f);
+		SetHoriz(30.f);
+
 		const char *vertShader = GLSL(
 #ifdef GL_ES
 			\nprecision highp int; \n
@@ -89,8 +92,11 @@ namespace gl
 			in vec3 TexCoords;
 
 			uniform samplerCube skybox;
-			//uniform vec3 viewPos;
-			//uniform float uTime = 0.0;
+			uniform vec3 viewPos;
+			uniform float uTime;
+			uniform vec3 uSunPos;
+			uniform vec3 uGroundColor;
+			uniform float uAmount;
 
 			float hash(float n)
 			{
@@ -121,8 +127,8 @@ namespace gl
 
 			void main() {
 
-				/*float cirrus = 0.4;
-				float cumulus = 0.3;
+				float cirrus = uAmount;
+				float cumulus = uAmount + 0.1;
 
 				const float g = 0.98;
 				const float Br = 0.0025;
@@ -135,6 +141,8 @@ namespace gl
 				vec3 color;
 				//vec3 view = normalize(fragPos - viewPos);
 				vec3 view = TexCoords;
+
+				vec3 sunPos = normalize(uSunPos);
 
 				// Atmosphere Scattering pos
 				float mu = dot(normalize(view), normalize(sunPos));
@@ -160,7 +168,7 @@ namespace gl
 				float exposure = 1.0;
 				color = 1.0 - exp(-exposure * color);
 
-				if (viewPos.y < 0.0)
+				/*if (viewPos.y < 0.0)
 				{
 					vec3 a = view;
 					vec3 P0 = viewPos;
@@ -185,7 +193,7 @@ namespace gl
 						color = ground_color;
 				}*/
 
-				FragColor = texture(skybox, TexCoords);
+				FragColor = vec4(color.rgb, 1.0);
 				//FragColor = vec4(color, 1.0);
 			});
 		int fragShSize = strlen(fragShader);
@@ -493,12 +501,18 @@ namespace gl
 		UnBind(mTarget);
 	}
 
-	void CubeMap::Draw(const glm::mat4 &view, const glm::mat4 &proj)
+	void CubeMap::Draw(const glm::vec3& viewPos, const glm::mat4 &view, const glm::mat4 &proj)
 	{
 		mProgram.Use();
 
 		mProgram.SetMatrix4(mProgram.Uniform("view"), view);
 		mProgram.SetMatrix4(mProgram.Uniform("projection"), proj);
+		float time = glfwGetTime();
+		mProgram.SetFloat(mProgram.Uniform("uTime"), time * mSpeed * 5.f);
+		mProgram.SetFloat(mProgram.Uniform("uAmount"), mAmount);
+		mProgram.SetFloat3(mProgram.Uniform("uSunPos"), mSunPos);
+
+		//mProgram.SetFloat3(mProgram.Uniform("viewPos"), viewPos);
 
 		Pipeline::SetDepthFunc(CompareFunc::LEQUAL);
 

@@ -95,26 +95,23 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 				thiz->_headTransform = thiz->_headTransform * glm::toMat4(thiz->_headOrientation);
 			}
 
-
 			thiz->_viewCount = viewCount;
-			
+
 			int viewIndex = 0;
 			for (WebXRView view : {views[0], views[1]})
 			{
 				thiz->_viewports[viewIndex] = {view.viewport[0], view.viewport[1], view.viewport[2], view.viewport[3]};
-				//thiz->_viewMatrices[viewIndex] = glm::transpose(glm::make_mat4(view.viewPose.matrix));
-				thiz->_viewMatrices[viewIndex] = glm::translate(glm::mat4(1.), thiz->_headPos +  glm::vec3(view.viewPose.position[0], view.viewPose.position[1], view.viewPose.position[2]));
-				//https://stackoverflow.com/questions/48348509/glmquat-why-the-order-of-x-y-z-w-components-are-mixed
+				// thiz->_viewMatrices[viewIndex] = glm::transpose(glm::make_mat4(view.viewPose.matrix));
+				thiz->_viewMatrices[viewIndex] = glm::translate(glm::mat4(1.), thiz->_headPos + glm::vec3(view.viewPose.position[0], view.viewPose.position[1], view.viewPose.position[2]));
+				// https://stackoverflow.com/questions/48348509/glmquat-why-the-order-of-x-y-z-w-components-are-mixed
 				glm::mat4 rot = glm::toMat4(glm::quat(view.viewPose.orientation[3], view.viewPose.orientation[0], view.viewPose.orientation[1], view.viewPose.orientation[2]));
 				thiz->_viewMatrices[viewIndex] = glm::inverse(thiz->_viewMatrices[viewIndex] * rot);
 
-				//glm::decompose(thiz->_viewMatrices[viewIndex], thiz->scale, thiz->rotation, thiz->translation, thiz->skew, thiz->perspective);
-				
+				// glm::decompose(thiz->_viewMatrices[viewIndex], thiz->scale, thiz->rotation, thiz->translation, thiz->skew, thiz->perspective);
+
 				thiz->_projectionMatrices[viewIndex] = (glm::make_mat4(view.projectionMatrix));
 				++viewIndex;
 			}
-
-			
 
 			constexpr int maxInputCount = 2;
 			WebXRInputSource sources[maxInputCount];
@@ -127,9 +124,11 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 				webxr_get_input_pose(sources + i, controllersPose + i);
 
 				thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
-				//thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]);
-				thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]));
-				//thiz->_controllerMatrix[i] = glm::make_mat4(controllersPose[i].matrix);
+				// thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]);
+				thiz->_controllerOrientation[i] = glm::rotate(glm::mat4(1.f), glm::radians(40.f), glm::vec3(-1.f, 0.f, 0.f));
+				thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2])) * thiz->_controllerOrientation[i];
+
+				// thiz->_controllerMatrix[i] = glm::make_mat4(controllersPose[i].matrix);
 
 				thiz->_controllerMatrix[i] = glm::translate(glm::mat4(1.), thiz->_controllerPos[i]);
 				thiz->_controllerMatrix[i] = thiz->_controllerMatrix[i] * thiz->_controllerOrientation[i];
@@ -150,26 +149,18 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 
 			printf("webxr_init: Session start callback\n");
 			View *thiz = ((Window *)userData)->mView.get();
-			webxr_set_select_callback([](WebXRInputSource *inputSource, void *userData)
-							{ 
-								printf("select_callback\n"); 
-								//ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
-							},
-				userData);
 
 			webxr_set_select_start_callback([](WebXRInputSource *inputSource, void *userData)
-							{ 
+											{ 
 								printf("select_start_callback\n"); 
-								ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
-							},
-				userData);
+								ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0); },
+											userData);
 
 			webxr_set_select_end_callback([](WebXRInputSource *inputSource, void *userData)
-							{ 
+										  { 
 								printf("select_end_callback\n");
-								ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, 0); 
-							},
-				userData);
+								ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(((Window *)userData)->mGLFWWindow, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, 0); },
+										  userData);
 		},
 		/* Session end callback */
 		[](void *userData, int mode)
@@ -184,8 +175,6 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 		},
 		/* userData */
 		this);
-
-	
 
 	// GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	// const GLFWvidmode* mode = glfwGetVideoMode(monitor);
