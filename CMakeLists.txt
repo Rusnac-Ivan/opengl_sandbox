@@ -77,7 +77,8 @@ if(DEFINED EMSCRIPTEN)
             --bind 
             -s WASM=1 
             -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 
-            -s TOTAL_MEMORY=1GB 
+            -s INITIAL_MEMORY=512MB  
+            -s MAXIMUM_MEMORY=1GB 
             -s ALLOW_MEMORY_GROWTH=1 
 
             -s ASYNCIFY 

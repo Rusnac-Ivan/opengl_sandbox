@@ -246,17 +246,17 @@ static void ImGui_ImplGlfw_3d_to_2d_UpdateGamepads()
 
 static ImGuiMouseCursor     g_LastMouseCursor = ImGuiMouseCursor_COUNT;
 
-void     ImGui_ImplGlfw_3d_to_2d_NewFrame(float mouse_x, float mouse_y)
+void     ImGui_ImplGlfw_3d_to_2d_NewFrame(float mouse_x, float mouse_y, float width, float height)
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplGlfw_3d_to_2d_Data* bd = ImGui_ImplGlfw_3d_to_2d_GetBackendData();
     IM_ASSERT(bd != NULL && "Did you call ImGui_ImplGlfw_InitForXXX()?");
 
     // Setup display size (every frame to accommodate for window resizing)
-    int w, h;
-    int display_w, display_h;
-    glfwGetWindowSize(bd->Window, &w, &h);
-    glfwGetFramebufferSize(bd->Window, &display_w, &display_h);
+    int w = width, h = height;
+    int display_w = width, display_h = height;
+    //glfwGetWindowSize(bd->Window, &w, &h);
+    //glfwGetFramebufferSize(bd->Window, &display_w, &display_h);
     io.DisplaySize = ImVec2((float)w, (float)h);
     if (w > 0 && h > 0)
         io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);

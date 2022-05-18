@@ -42,10 +42,16 @@ namespace gl
 		{
 
 			GL(GetShaderInfoLog(mID, 1024, nullptr, infoLog));
-			if(Shader_Type == ShaderType::FRAGMENT)
+			if (Shader_Type == ShaderType::FRAGMENT)
+			{
 				fprintf(stderr, "Failed to compile fragment shader: %s\n", infoLog);
-			else if(Shader_Type == ShaderType::VERTEX)
+				assert(false);
+			}
+			else if (Shader_Type == ShaderType::VERTEX)
+			{
 				fprintf(stderr, "Failed to compile vertex shader: %s\n", infoLog);
+				assert(false);
+			}
 
 			GL(DeleteShader(mID));
 			mID = 0;

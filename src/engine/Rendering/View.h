@@ -42,7 +42,6 @@ public:
     glm::mat4 _controllerOrientation[2];
     glm::mat4 _controllerMatrix[2];
     gl::CubeMap mCubeMap;
-    glm::mat4 _headTransform;
 
     glm::vec3 mViewPos;
     bool mReadyToDraw;

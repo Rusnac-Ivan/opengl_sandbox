@@ -60,6 +60,13 @@ namespace gl
 
 	CubeMap::CubeMap() : mSunPos(glm::normalize(glm::vec3(1.f, 1.f, 0.f))), mSpeed(0.5f), mAmount(0.5f)
 	{
+		isPosX = false;
+		isNegX = false;
+		isPosY = false;
+		isNegY = false;
+		isPosZ = false;
+		isNegZ = false;
+
 		SetVert(60.f);
 		SetHoriz(30.f);
 
@@ -71,13 +78,15 @@ namespace gl
 			layout(location = 0) in vec3 aPos;
 
 			out vec3 TexCoords;
+			out vec3 FragPos;
 
 			uniform mat4 projection;
 			uniform mat4 view;
 
 			void main() {
+				FragPos = aPos * 100.0;
 				TexCoords = aPos;
-				vec4 pos = projection * view * vec4(aPos * 100.0, 1.0);
+				vec4 pos = projection * view * vec4(FragPos, 1.0);
 				gl_Position = pos.xyww;
 			});
 
@@ -90,13 +99,14 @@ namespace gl
 			out vec4 FragColor;
 
 			in vec3 TexCoords;
+			in vec3 FragPos;
 
 			uniform samplerCube skybox;
-			uniform vec3 viewPos;
-			uniform float uTime;
-			uniform vec3 uSunPos;
-			uniform vec3 uGroundColor;
-			uniform float uAmount;
+			//uniform vec3 viewPos;
+			//uniform float uTime;
+			//uniform vec3 uSunPos;
+			//uniform vec3 uGroundColor;
+			//uniform float uAmount;
 
 			float hash(float n)
 			{
@@ -127,7 +137,7 @@ namespace gl
 
 			void main() {
 
-				float cirrus = uAmount;
+				/*float cirrus = uAmount;
 				float cumulus = uAmount + 0.1;
 
 				const float g = 0.98;
@@ -140,7 +150,7 @@ namespace gl
 
 				vec3 color;
 				//vec3 view = normalize(fragPos - viewPos);
-				vec3 view = TexCoords;
+				vec3 view = normalize(FragPos - viewPos);
 
 				vec3 sunPos = normalize(uSunPos);
 
@@ -168,7 +178,7 @@ namespace gl
 				float exposure = 1.0;
 				color = 1.0 - exp(-exposure * color);
 
-				/*if (viewPos.y < 0.0)
+				if (view.y < 0.0)
 				{
 					vec3 a = view;
 					vec3 P0 = viewPos;
@@ -180,7 +190,7 @@ namespace gl
 
 					vec3 ground_color;
 
-					ground_color = uGroundColor;
+					ground_color = vec3(0.0, 0.5, 0.0);
 					//ground_color = textureColor(P, texture(Texture, P.xz).rgb);
 
 					float dist = distance(viewPos, P);
@@ -193,7 +203,7 @@ namespace gl
 						color = ground_color;
 				}*/
 
-				FragColor = vec4(color.rgb, 1.0);
+				FragColor = texture(skybox, TexCoords);
 				//FragColor = vec4(color, 1.0);
 			});
 		int fragShSize = strlen(fragShader);
@@ -219,7 +229,7 @@ namespace gl
 	}
 	void CubeMap::SetPositiveX(std::string file_name)
 	{
-
+		isPosX = true;
 #ifdef __EMSCRIPTEN__
 		/*void *pBuff = nullptr;
 		int num = 0;
@@ -291,6 +301,7 @@ namespace gl
 
 	void CubeMap::SetNegativeX(std::string file_name)
 	{
+		isNegX = true;
 #ifdef __EMSCRIPTEN__
 		emscripten_async_wget_data(
 			file_name.c_str(), this, [](void *arg, void *data, int size)
@@ -329,6 +340,7 @@ namespace gl
 	}
 	void CubeMap::SetPositiveY(std::string file_name)
 	{
+		isPosY = true;
 #ifdef __EMSCRIPTEN__
 		emscripten_async_wget_data(
 			file_name.c_str(), this, [](void *arg, void *data, int size)
@@ -367,7 +379,7 @@ namespace gl
 	}
 	void CubeMap::SetNegativeY(std::string file_name)
 	{
-
+		isNegY = true;
 #ifdef __EMSCRIPTEN__
 		emscripten_async_wget_data(
 			file_name.c_str(), this, [](void *arg, void *data, int size)
@@ -406,7 +418,7 @@ namespace gl
 	}
 	void CubeMap::SetPositiveZ(std::string file_name)
 	{
-
+		isPosZ = true;
 #ifdef __EMSCRIPTEN__
 		emscripten_async_wget_data(
 			file_name.c_str(), this, [](void *arg, void *data, int size)
@@ -445,7 +457,7 @@ namespace gl
 	}
 	void CubeMap::SetNegativeZ(std::string file_name)
 	{
-
+		isNegZ = true;
 #ifdef __EMSCRIPTEN__
 		emscripten_async_wget_data(
 			file_name.c_str(), this, [](void *arg, void *data, int size)
@@ -503,24 +515,28 @@ namespace gl
 
 	void CubeMap::Draw(const glm::vec3& viewPos, const glm::mat4 &view, const glm::mat4 &proj)
 	{
-		mProgram.Use();
+		if (isPosX && isNegX && isPosY && isNegY && isPosZ && isNegZ)
+		{
+			mProgram.Use();
 
-		mProgram.SetMatrix4(mProgram.Uniform("view"), view);
-		mProgram.SetMatrix4(mProgram.Uniform("projection"), proj);
-		float time = glfwGetTime();
-		mProgram.SetFloat(mProgram.Uniform("uTime"), time * mSpeed * 5.f);
-		mProgram.SetFloat(mProgram.Uniform("uAmount"), mAmount);
-		mProgram.SetFloat3(mProgram.Uniform("uSunPos"), mSunPos);
+			mProgram.SetMatrix4(mProgram.Uniform("view"), view);
+			mProgram.SetMatrix4(mProgram.Uniform("projection"), proj);
+			float time = glfwGetTime();
+			//mProgram.SetFloat(mProgram.Uniform("uTime"), time * mSpeed * 5.f);
+			//mProgram.SetFloat(mProgram.Uniform("uAmount"), mAmount);
+			//mProgram.SetFloat3(mProgram.Uniform("uSunPos"), mSunPos);
 
-		//mProgram.SetFloat3(mProgram.Uniform("viewPos"), viewPos);
+			//mProgram.SetFloat3(mProgram.Uniform("viewPos"), viewPos);
 
-		Pipeline::SetDepthFunc(CompareFunc::LEQUAL);
+			Pipeline::SetDepthFunc(CompareFunc::LEQUAL);
 
-		Activate(mTarget, 0);
-		mVAO.Draw(Primitive::TRIANGLES, 0, DataType::UNSIGNED_INT, NULL);
+			Activate(mTarget, 0);
+			mVAO.Draw(Primitive::TRIANGLES, 0, DataType::UNSIGNED_INT, NULL);
 
-		Pipeline::SetDepthFunc(CompareFunc::LESS);
+			Pipeline::SetDepthFunc(CompareFunc::LESS);
 
-		mProgram.StopUsing();
+			mProgram.StopUsing();
+		}
+
 	}
 }

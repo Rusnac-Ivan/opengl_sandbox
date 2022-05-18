@@ -91,8 +91,6 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 				thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
 				thiz->_headOrientation = glm::quat(headPose->orientation[0], headPose->orientation[1], headPose->orientation[2], headPose->orientation[3]);
 
-				thiz->_headTransform = glm::translate(glm::mat4(1.f), thiz->_headPos);
-				thiz->_headTransform = thiz->_headTransform * glm::toMat4(thiz->_headOrientation);
 			}
 
 			thiz->_viewCount = viewCount;
@@ -336,11 +334,13 @@ void Window::OnInitialize()
 	// Setup Platform/Renderer backends
 	// ImGui_ImplGlfw_InitForOpenGL(mGLFWWindow, true);
 #ifndef __EMSCRIPTEN__
-	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, true);
+	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
+	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
 #else
 	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
-#endif
 	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
+#endif
+	
 
 	mView->OnInitialize();
 }

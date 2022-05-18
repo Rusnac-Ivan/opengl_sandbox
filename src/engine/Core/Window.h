@@ -11,6 +11,7 @@
 #endif
 
 //#include <backends/imgui_impl_glfw.h>
+#define IMGUI_IMPL_OPENGL_ES3
 #include <backends/imgui_impl_opengl3.h>
 
 #include <iostream>

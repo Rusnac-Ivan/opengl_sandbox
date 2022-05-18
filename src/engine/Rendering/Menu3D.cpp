@@ -46,58 +46,58 @@ void Menu3D::Initialize()
 {
     mProgram = std::make_unique<gl::Program>();
 
-    const char *vertShader = GLSL(
+    const char* vertShader = GLSL(
 #ifdef GL_ES
         \nprecision highp int; \n
-             precision highp float; \n
+        precision highp float; \n
 #endif \n
-                 layout(location = 0) in vec3 aPos;
-         layout(location = 2) in vec2 aUV0;
+        layout(location = 0) in vec3 aPos;
+    layout(location = 2) in vec2 aUV0;
 
-         float rand(float x) {
-             return fract(sin(x) * 100000.0);
-         }
+    float rand(float x) {
+        return fract(sin(x) * 100000.0);
+    }
 
-         out vec3 FragPos;
-         out vec2 UV0;
-         out vec3 Pos;
+    out vec3 FragPos;
+    out vec2 UV0;
+    out vec3 Pos;
 
-         uniform vec3 pos;
-         uniform mat4 model;
-         uniform mat4 proj_view;
+    uniform vec3 pos;
+    uniform mat4 model;
+    uniform mat4 proj_view;
 
-         void main() {
-             FragPos = vec3(model * vec4(aPos, 1.0));
-             Pos = vec3(model * vec4(pos, 1.0));
-             UV0 = aUV0;
-             gl_Position = proj_view * vec4(FragPos, 1.0);
-         });
+    void main() {
+        FragPos = vec3(model * vec4(aPos, 1.0));
+        Pos = vec3(model * vec4(pos, 1.0));
+        UV0 = aUV0;
+        gl_Position = proj_view * vec4(FragPos, 1.0);
+    });
 
     int vertShSize = strlen(vertShader);
-    const char *fragShader = GLSL(
+    const char* fragShader = GLSL(
 #ifdef GL_ES
         \nprecision highp int; \n
-             precision highp float; \n
+        precision highp float; \n
 #endif \n
-                 out vec4 FragColor;
+        out vec4 FragColor;
 
-         uniform sampler2D uBaseColor;
+    uniform sampler2D uBaseColor;
 
-         in vec3 FragPos;
-         in vec2 UV0;
-         in vec3 Pos;
+    in vec3 FragPos;
+    in vec2 UV0;
+    in vec3 Pos;
 
-         void main() {
+    void main() {
 
-             if (dot(Pos - FragPos, Pos - FragPos) < 0.0001)
-                 FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-             else
-             {
-                 vec4 base_col = texture(uBaseColor, UV0);
-                 FragColor = vec4(base_col.rgb, base_col.a);
-             }
+        if (dot(Pos - FragPos, Pos - FragPos) < 0.0001)
+            FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        else
+        {
+            vec4 base_col = texture(uBaseColor, UV0);
+            FragColor = vec4(base_col.rgb, base_col.a);
+        }
 
-         });
+    });
     int fragShSize = strlen(fragShader);
 
     gl::Shader<gl::ShaderType::VERTEX> vertSh;
@@ -185,17 +185,16 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
     void Menu3D::RenderIn(gl::CubeMap* cubemap, glm::vec3 controllerPos, glm::vec3 controllerDir, glm::vec2 mouse_pos, glm::vec2 window_size, const glm::mat4& view, const glm::mat4& proj)
 #endif
 {
-    // mouse_pos = glm::vec2(window_size / 2.f);
 
     mFBO.Bind(gl::BindType::ReadAndDraw);
-    // gl::RenderContext::SetViewport(0, mHeight - mMenuHeight, mMenuWidth, mHeight);
-    // gl::RenderContext::SetViewport(0.f, 0.f, mWidth, mHeight);
+
 
     gl::RenderContext::SetClearColor(0.f, 0.f, 0.f, 0.f);
-    gl::RenderContext::Clear(gl::BufferBit::COLOR, gl::BufferBit::DEPTH);
+    gl::RenderContext::Clear(gl::BufferBit::COLOR);
+
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
+
 #ifndef __EMSCRIPTEN__
     glm::vec3 ray = glm::normalize(CreateRay(mouse_pos, window_size, view, proj) - cam_pos);
     glm::vec3 controllerPos = cam_pos;
@@ -223,16 +222,16 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
         float y = glm::dot(Vy, P1_V0);
         // glm::vec3 Y = y * Vy;
 
-        new_mouse_pos = glm::vec2((mWidth / glm::length(mVertices[3] - mVertices[0])) * x, window_size.y - (mHeight / glm::length(mVertices[1] - mVertices[0])) * y);
+        new_mouse_pos = glm::vec2((mWidth / glm::length(mVertices[3] - mVertices[0])) * x, mHeight - (mHeight / glm::length(mVertices[1] - mVertices[0])) * y);
     }
     std::string info(std::to_string(new_mouse_pos.x) + ", " + std::to_string(new_mouse_pos.y));
 
-    ImGui_ImplGlfw_3d_to_2d_NewFrame(new_mouse_pos.x, new_mouse_pos.y);
+    ImGui_ImplGlfw_3d_to_2d_NewFrame(new_mouse_pos.x, new_mouse_pos.y, mWidth, mHeight);
     ImGui::NewFrame();
 
-    ImGui::SetNextWindowPos(ImVec2(0.f, window_size.y - mHeight), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(mWidth, mHeight), ImGuiCond_Always);
-    if (ImGui::Begin("My Menu rt5", nullptr))
+    if (ImGui::Begin("My Menu Rel:18/05/2022", nullptr))
     {
         if(ImGui::Button("Ok", ImVec2(90.f, 30.f)))
         {
@@ -262,7 +261,7 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
 
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
 
-        draw_list->AddCircleFilled(ImVec2(new_mouse_pos.x, new_mouse_pos.y), 10.f, ImColor(ImVec4(255.f / 255.f, 129.f / 255.f, 50.f / 255.f, 1.0f)));
+        draw_list->AddCircleFilled(ImVec2(new_mouse_pos.x, new_mouse_pos.y), 10.f, ImColor(ImVec4(0.f, 1.f, 1.f, 0.5f)));
 
         static char buff[64] = {};
         ImGui::InputText("in text", buff, IM_ARRAYSIZE(buff));

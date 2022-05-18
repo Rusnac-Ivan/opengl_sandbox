@@ -49,6 +49,13 @@ namespace gl
 		float mHoriz;
 		float mVert;
 
+		bool isPosX;
+		bool isNegX;
+		bool isPosY;
+		bool isNegY;
+		bool isPosZ;
+		bool isNegZ;
+
 	public:
 		CubeMap();
 		~CubeMap();
