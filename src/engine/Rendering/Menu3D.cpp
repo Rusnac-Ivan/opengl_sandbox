@@ -231,7 +231,8 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
 
     ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(mWidth, mHeight), ImGuiCond_Always);
-    if (ImGui::Begin("My Menu Rel:18/05/2022", nullptr))
+    if (ImGui::Begin("My Menu Rel: 20/05/2022, v0.2", nullptr))
+
     {
         if(ImGui::Button("Ok", ImVec2(90.f, 30.f)))
         {

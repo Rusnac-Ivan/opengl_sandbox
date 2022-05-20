@@ -31,11 +31,14 @@ private:
 public:
     int _viewCount;
     int _controllerCount;
+    
     glm::mat4 _viewMatrices[2];
     glm::mat4 _projectionMatrices[2];
     glm::mat4 _controllerTransformations[2];
     glm::vec4 _viewports[2];
     glm::vec3 _headPos;
+    glm::mat4 _headTranslateMat;
+    glm::mat4 _headRotateMat;
     glm::quat _headOrientation;
     glm::vec3 _controllerPos[2];
     glm::vec3 _controllerDir[2];

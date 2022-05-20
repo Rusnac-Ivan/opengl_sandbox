@@ -62,7 +62,7 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 	}
 
 #ifdef __EMSCRIPTEN__
-	mGLSLVersion = "#version 300 es";
+	mGLSLVersion = "#version 100";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #else
@@ -89,8 +89,9 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 			if (headPose)
 			{
 				thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
-				thiz->_headOrientation = glm::quat(headPose->orientation[0], headPose->orientation[1], headPose->orientation[2], headPose->orientation[3]);
-
+				thiz->_headOrientation = glm::quat(headPose->orientation[3], headPose->orientation[0], headPose->orientation[1], headPose->orientation[2]);
+				thiz->_headTranslateMat = glm::translate(glm::mat4(1.f) , thiz->_headPos);
+				thiz->_headRotateMat = glm::toMat4(thiz->_headOrientation);
 			}
 
 			thiz->_viewCount = viewCount;
@@ -119,19 +120,29 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 
 			for (int i = 0; i < thiz->_controllerCount; ++i)
 			{
-				webxr_get_input_pose(sources + i, controllersPose + i);
+				webxr_get_input_pose(sources + i, controllersPose + i, WEBXR_INPUT_POSE_TARGET_RAY);
 
 				thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
-				// thiz->_controllerOrientation[i] = glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]);
-				thiz->_controllerOrientation[i] = glm::rotate(glm::mat4(1.f), glm::radians(40.f), glm::vec3(-1.f, 0.f, 0.f));
-				thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2])) * thiz->_controllerOrientation[i];
 
-				// thiz->_controllerMatrix[i] = glm::make_mat4(controllersPose[i].matrix);
+				glm::mat4 _controllerTranslate = glm::translate(glm::mat4(1.f), thiz->_controllerPos[i]);
+				glm::mat4 _controllerRotate = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]));
 
-				thiz->_controllerMatrix[i] = glm::translate(glm::mat4(1.), thiz->_controllerPos[i]);
-				thiz->_controllerMatrix[i] = thiz->_controllerMatrix[i] * thiz->_controllerOrientation[i];
+				thiz->_controllerPos[i] = glm::vec3(thiz->_headTranslateMat * thiz->_headTranslateMat * glm::vec4(thiz->_controllerPos[i], 1.f));
+				
+				//thiz->_controllerOrientation[i] = glm::rotate(glm::mat4(1.f), glm::radians(40.f), glm::vec3(-1.f, 0.f, 0.f));
+				//thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2])) * thiz->_controllerOrientation[i];
+				thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]));
 
-				thiz->_controllerDir[i] = glm::vec3(thiz->_controllerOrientation[i] * glm::vec4(0.f, 0.f, -1.f, 1.f));
+				
+				
+
+				//thiz->_controllerMatrix[i] = thiz->_headTranslateMat * thiz->_headTranslateMat * thiz->_headRotateMat * _controllerTranslate * _controllerRotate;
+				thiz->_controllerMatrix[i] = thiz->_headTranslateMat * thiz->_headTranslateMat * _controllerTranslate * _controllerRotate;
+				
+				//thiz->_controllerMatrix[i] = _controllerTranslate * _controllerRotate;
+
+
+				thiz->_controllerDir[i] =  glm::vec3(_controllerRotate * glm::vec4(0.f, 0.f, -1.f, 1.f));
 			}
 
 			if (thiz->mReadyToDraw)

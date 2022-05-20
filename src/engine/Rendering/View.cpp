@@ -333,8 +333,6 @@ void View::OnSceneDraw()
 
 #endif
 
-        // glm::vec3 int_point = mMenu3D.GetIntersectPoint();
-        // glm::vec3 dir = int_point - _controllerPos[0];
         mRayProg.Use();
         for (int i = 0; i < _controllerCount; i++)
         {
@@ -582,7 +580,7 @@ void View::OnResize(int width, int height)
 */
 
 #ifdef __EMSCRIPTEN__
-    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR, WEBXR_SESSION_FEATURE_BOUNDED_FLOOR);
+    webxr_request_session(WEBXR_SESSION_MODE_IMMERSIVE_VR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR, WEBXR_SESSION_FEATURE_LOCAL_FLOOR);
 #endif
 }
 
