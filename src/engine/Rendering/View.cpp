@@ -244,14 +244,14 @@ void View::OnInitialize()
     mMenu3D.Create(500.f, 700.f);
 
 #ifndef __EMSCRIPTEN__
-    mCubeMap.SetPositiveX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
-    mCubeMap.SetNegativeX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
-    mCubeMap.SetPositiveY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
-    mCubeMap.SetNegativeY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
-    mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
-    mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
+    mCubeMap.SetPositiveX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
+    mCubeMap.SetNegativeX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
+    mCubeMap.SetPositiveY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
+    mCubeMap.SetNegativeY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
+    mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
+    mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
+    mRightController.loadFromFile("D:\\CPP\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
     // mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
@@ -334,6 +334,13 @@ void View::OnSceneDraw()
 #endif
 
         mRayProg.Use();
+#ifndef __EMSCRIPTEN__
+        mRayProg.SetMatrix4(mRayProg.Uniform("view"), mCamera.GetViewMat());
+        mRayProg.SetMatrix4(mRayProg.Uniform("projection"), mCamera.GetProjectMat());
+#else
+        mRayProg.SetMatrix4(mRayProg.Uniform("view"), _viewMatrices[i]);
+        mRayProg.SetMatrix4(mRayProg.Uniform("projection"), _projectionMatrices[i]);
+#endif
         for (int i = 0; i < _controllerCount; i++)
         {
             glm::vec3 dir = _controllerDir[i];
@@ -392,13 +399,6 @@ void View::OnSceneDraw()
 
             glm::mat4 transform = translate * rot_scale_mat;
 
-#ifndef __EMSCRIPTEN__
-            mRayProg.SetMatrix4(mRayProg.Uniform("view"), mCamera.GetViewMat());
-            mRayProg.SetMatrix4(mRayProg.Uniform("projection"), mCamera.GetProjectMat());
-#else
-            mRayProg.SetMatrix4(mRayProg.Uniform("view"), _viewMatrices[i]);
-            mRayProg.SetMatrix4(mRayProg.Uniform("projection"), _projectionMatrices[i]);
-#endif
             mRayProg.SetMatrix4(mRayProg.Uniform("model"), transform);
 
             mRayVAO.Draw(gl::Primitive::TRIANGLES, 0, DataType::UNSIGNED_INT, NULL);
@@ -409,10 +409,10 @@ void View::OnSceneDraw()
 
 void View::OnGUIDraw()
 {
-    /*{
+    {
         // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+        //ImGui_ImplGlfw_3d_to_2d_NewFrame(mMousePos.x, mMousePos.y, mWidth, mHeight);
         ImGui::NewFrame();
 
         float fps = (*GImGui).IO.Framerate;
@@ -486,7 +486,7 @@ void View::OnGUIDraw()
         // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    }*/
+    }
 
     {
 #ifndef __EMSCRIPTEN__

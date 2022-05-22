@@ -281,8 +281,8 @@ void     ImGui_ImplGlfw_3d_to_2d_NewFrame(float mouse_x, float mouse_y, float wi
 void     ImGui_ImplGlfw_3d_to_2d_WindowFocusCallback(GLFWwindow* window, int focused)
 {
     ImGui_ImplGlfw_3d_to_2d_Data* bd = ImGui_ImplGlfw_3d_to_2d_GetBackendData();
-    //if (bd->PrevUserCallbackWindowFocus != NULL && window == bd->Window)
-        //bd->PrevUserCallbackWindowFocus(window, focused);
+    if (bd->PrevUserCallbackWindowFocus != NULL && window == bd->Window)
+        bd->PrevUserCallbackWindowFocus(window, focused);
 
     ImGuiIO& io = ImGui::GetIO();
     io.AddFocusEvent(focused != 0);
@@ -291,8 +291,8 @@ void     ImGui_ImplGlfw_3d_to_2d_WindowFocusCallback(GLFWwindow* window, int foc
 void     ImGui_ImplGlfw_3d_to_2d_CursorEnterCallback(GLFWwindow* window, int entered)
 {
     ImGui_ImplGlfw_3d_to_2d_Data* bd = ImGui_ImplGlfw_3d_to_2d_GetBackendData();
-    //if (bd->PrevUserCallbackCursorEnter != NULL && window == bd->Window)
-        //bd->PrevUserCallbackCursorEnter(window, entered);
+    if (bd->PrevUserCallbackCursorEnter != NULL && window == bd->Window)
+        bd->PrevUserCallbackCursorEnter(window, entered);
 
     if (entered)
         bd->MouseWindow = window;
@@ -304,8 +304,8 @@ void     ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback(GLFWwindow* window, int but
 {
     printf("ImGui_ImplGlfw_3d_to_2d_MouseButtonCallback\n");
     ImGui_ImplGlfw_3d_to_2d_Data* bd = ImGui_ImplGlfw_3d_to_2d_GetBackendData();
-    //if (bd->PrevUserCallbackMousebutton != NULL && window == bd->Window)
-        //bd->PrevUserCallbackMousebutton(window, button, action, mods);
+    if (bd->PrevUserCallbackMousebutton != NULL && window == bd->Window)
+        bd->PrevUserCallbackMousebutton(window, button, action, mods);
 
     if (action == GLFW_PRESS && button >= 0 && button < IM_ARRAYSIZE(bd->MouseJustPressed))
     {

@@ -192,8 +192,6 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
     gl::RenderContext::SetClearColor(0.f, 0.f, 0.f, 0.f);
     gl::RenderContext::Clear(gl::BufferBit::COLOR);
 
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
 
 #ifndef __EMSCRIPTEN__
     glm::vec3 ray = glm::normalize(CreateRay(mouse_pos, window_size, view, proj) - cam_pos);

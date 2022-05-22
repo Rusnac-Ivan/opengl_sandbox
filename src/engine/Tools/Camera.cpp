@@ -60,6 +60,9 @@ void Camera::Resize(const glm::vec2& winSize)
 	mWidth = winSize.x;
 	mHeight = winSize.y;
 	
+	if (mHeight == 0.f)
+		return;
+
 	float aspect = (float)mWidth / (float)mHeight;
 
 	mProjectMat = glm::perspective(glm::radians(mFov), aspect, mNear, mFar);

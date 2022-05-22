@@ -84,7 +84,7 @@ namespace gl
 			uniform mat4 view;
 
 			void main() {
-				FragPos = aPos * 100.0;
+				FragPos = aPos * 1000.0;
 				TexCoords = aPos;
 				vec4 pos = projection * view * vec4(FragPos, 1.0);
 				gl_Position = pos.xyww;

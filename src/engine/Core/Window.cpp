@@ -78,6 +78,8 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 	glfwWindowHint(GLFW_RESIZABLE, 1);
 	// glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
+	
+
 #ifdef __EMSCRIPTEN__
 
 	webxr_init(
@@ -90,7 +92,7 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 			{
 				thiz->_headPos = glm::vec3(headPose->position[0], headPose->position[1], headPose->position[2]);
 				thiz->_headOrientation = glm::quat(headPose->orientation[3], headPose->orientation[0], headPose->orientation[1], headPose->orientation[2]);
-				thiz->_headTranslateMat = glm::translate(glm::mat4(1.f) , thiz->_headPos);
+				thiz->_headTranslateMat = glm::translate(glm::mat4(1.f), thiz->_headPos);
 				thiz->_headRotateMat = glm::toMat4(thiz->_headOrientation);
 			}
 
@@ -127,22 +129,18 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 				glm::mat4 _controllerTranslate = glm::translate(glm::mat4(1.f), thiz->_controllerPos[i]);
 				glm::mat4 _controllerRotate = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]));
 
-				thiz->_controllerPos[i] = glm::vec3(thiz->_headTranslateMat * thiz->_headTranslateMat * glm::vec4(thiz->_controllerPos[i], 1.f));
-				
-				//thiz->_controllerOrientation[i] = glm::rotate(glm::mat4(1.f), glm::radians(40.f), glm::vec3(-1.f, 0.f, 0.f));
-				//thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2])) * thiz->_controllerOrientation[i];
+				// thiz->_controllerPos[i] = glm::vec3(thiz->_headTranslateMat * thiz->_headTranslateMat * glm::vec4(thiz->_controllerPos[i], 1.f));
+
+				// thiz->_controllerOrientation[i] = glm::rotate(glm::mat4(1.f), glm::radians(40.f), glm::vec3(-1.f, 0.f, 0.f));
+				// thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2])) * thiz->_controllerOrientation[i];
 				thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]));
 
-				
-				
+				// thiz->_controllerMatrix[i] = thiz->_headTranslateMat * thiz->_headTranslateMat * thiz->_headRotateMat * _controllerTranslate * _controllerRotate;
+				thiz->_controllerMatrix[i] = _controllerTranslate * _controllerRotate;
 
-				//thiz->_controllerMatrix[i] = thiz->_headTranslateMat * thiz->_headTranslateMat * thiz->_headRotateMat * _controllerTranslate * _controllerRotate;
-				thiz->_controllerMatrix[i] = thiz->_headTranslateMat * thiz->_headTranslateMat * _controllerTranslate * _controllerRotate;
-				
-				//thiz->_controllerMatrix[i] = _controllerTranslate * _controllerRotate;
+				// thiz->_controllerMatrix[i] = _controllerTranslate * _controllerRotate;
 
-
-				thiz->_controllerDir[i] =  glm::vec3(_controllerRotate * glm::vec4(0.f, 0.f, -1.f, 1.f));
+				thiz->_controllerDir[i] = glm::vec3(_controllerRotate * glm::vec4(0.f, 0.f, -1.f, 1.f));
 			}
 
 			if (thiz->mReadyToDraw)
@@ -242,6 +240,7 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 	}
 #endif
 
+	//GL(Enable(GL_MULTISAMPLE));
 	// glEnable(GL_DEBUG_OUTPUT);
 	// glDebugMessageCallback(MessageCallback, NULL);
 
@@ -345,13 +344,15 @@ void Window::OnInitialize()
 	// Setup Platform/Renderer backends
 	// ImGui_ImplGlfw_InitForOpenGL(mGLFWWindow, true);
 #ifndef __EMSCRIPTEN__
-	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
+	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, true);
 	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
 #else
 	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
 	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
 #endif
-	
+
+	// Start the Dear ImGui frame
+	ImGui_ImplOpenGL3_NewFrame();
 
 	mView->OnInitialize();
 }
