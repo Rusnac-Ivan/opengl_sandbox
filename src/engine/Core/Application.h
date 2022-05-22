@@ -18,7 +18,7 @@ private:
 
 		mWindow.OnInitialize();
 #ifdef __EMSCRIPTEN__
-		emscripten_set_main_loop_arg(Application::MainLoop, (void*)this, 0, 1);
+		emscripten_set_main_loop_arg(Application::MainLoop, (void *)this, 0, 1);
 #else
 		while (mWindow.WindowIsOpen())
 		{
@@ -30,9 +30,10 @@ private:
 	Application(Application &app) {}
 	Application &operator=(Application &app) { return *this; }
 	~Application()
-	{}
+	{
+	}
 
-	static void MainLoop(void* ptr);
+	static void MainLoop(void *ptr);
 
 public:
 	static Application &RunApplication(uint32_t width, uint32_t height, const char *windowName)
@@ -42,8 +43,7 @@ public:
 	}
 
 private:
-	
-	//View* mView;
+	// View* mView;
 	Window mWindow;
 };
 
