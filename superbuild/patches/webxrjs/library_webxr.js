@@ -173,10 +173,10 @@ webxr_init: function(frameCallback, startSessionCallback, endSessionCallback, er
             session.updateRenderState({ baseLayer: layer });
 
             /* 'viewer' reference space is always available. */
-            session.requestReferenceSpace('viewer').then(refSpace => {
-                WebXR.refSpaces['viewer'] = refSpace;
+            session.requestReferenceSpace('local').then(refSpace => {
+                WebXR.refSpaces['local'] = refSpace;
 
-                WebXR.refSpace = 'viewer';
+                WebXR.refSpace = 'local';
 
                 // Give application a chance to react to session starting
                 // e.g. finish current desktop frame.

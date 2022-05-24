@@ -122,7 +122,7 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 
 			for (int i = 0; i < thiz->_controllerCount; ++i)
 			{
-				webxr_get_input_pose(sources + i, controllersPose + i, WEBXR_INPUT_POSE_TARGET_RAY);
+				webxr_get_input_pose(sources + i, controllersPose + i);
 
 				thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
 
@@ -348,11 +348,10 @@ void Window::OnInitialize()
 	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
 #else
 	ImGui_ImplGlfw_3d_to_2d_Init(mGLFWWindow, false);
-	ImGui_ImplOpenGL3_Init(mGLSLVersion.c_str());
+	ImGui_ImplOpenGL3_Init(NULL);
 #endif
 
-	// Start the Dear ImGui frame
-	ImGui_ImplOpenGL3_NewFrame();
+	
 
 	mView->OnInitialize();
 }
@@ -361,8 +360,8 @@ void Window::OnRender()
 	mView->OnSceneDraw();
 
 	// Start the Dear ImGui frame
-	// ImGui_ImplOpenGL3_NewFrame();
-	// ImGui_ImplGlfw_NewFrame();
+	ImGui_ImplOpenGL3_NewFrame();
+	//ImGui_ImplGlfw_NewFrame();
 	// ImGui::NewFrame();
 
 	mView->OnGUIDraw();

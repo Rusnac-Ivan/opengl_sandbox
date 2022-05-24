@@ -200,6 +200,7 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
     glm::vec3 ray = glm::normalize(controllerDir);
 #endif
     float distance = 0.f;
+    
 
     glm::vec2 new_mouse_pos = glm::vec2(window_size.x, 0.f);
     if (glm::intersectRayPlane(controllerPos, ray, mVertices[0], glm::vec3(0.f, 0.f, 1.f), distance))
@@ -229,8 +230,7 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
 
     ImGui::SetNextWindowPos(ImVec2(0.f, 0.f), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(mWidth, mHeight), ImGuiCond_Always);
-    if (ImGui::Begin("My Menu Rel: 20/05/2022, v0.2", nullptr))
-
+    if (ImGui::Begin("My Menu Rel: 24/05/2022, v0.1", nullptr))
     {
         if(ImGui::Button("Ok", ImVec2(90.f, 30.f)))
         {
@@ -297,6 +297,8 @@ glm::vec3 Menu3D::CreateRay(glm::vec2 mouse_pos, glm::vec2 window_size, const gl
         ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80.0f));
     }
     ImGui::End();
+
+    ImGui::EndFrame();
 
     // Rendering
     ImGui::Render();

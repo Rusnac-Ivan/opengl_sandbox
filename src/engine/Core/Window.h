@@ -6,9 +6,10 @@
 #include <Rendering/View.h>
 
 #ifdef __EMSCRIPTEN__
-//#define IMGUI_IMPL_OPENGL_ES3
+	#define IMGUI_IMPL_OPENGL_ES2
 #else
 #endif
+
 
 //#include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>

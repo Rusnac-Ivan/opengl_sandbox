@@ -244,14 +244,14 @@ void View::OnInitialize()
     mMenu3D.Create(500.f, 700.f);
 
 #ifndef __EMSCRIPTEN__
-    mCubeMap.SetPositiveX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
-    mCubeMap.SetNegativeX("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
-    mCubeMap.SetPositiveY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
-    mCubeMap.SetNegativeY("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
-    mCubeMap.SetPositiveZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
-    mCubeMap.SetNegativeZ("D:\\CPP\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
+    mCubeMap.SetPositiveX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posx.jpg");
+    mCubeMap.SetNegativeX("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negx.jpg");
+    mCubeMap.SetPositiveY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posy.jpg");
+    mCubeMap.SetNegativeY("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negy.jpg");
+    mCubeMap.SetPositiveZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\posz.jpg");
+    mCubeMap.SetNegativeZ("D:\\Repositories\\opengl_sandbox\\resources\\cube_maps\\yokohama\\negz.jpg");
 
-    mRightController.loadFromFile("D:\\CPP\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
+    mRightController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controllers\\base\\generic_controller.glb");
     // mLeftController.loadFromFile("D:\\Repositories\\opengl_sandbox\\resources\\models\\controller\\left.glb");
 #else
     mCubeMap.SetPositiveX("./resources/cube_maps/yokohama/posx.jpg");
@@ -278,6 +278,9 @@ void View::OnInitialize()
 
 void View::OnSceneDraw()
 {
+    if(!mProgram.get())
+        return;
+
     gl::Pipeline::EnableBlending();
     gl::Pipeline::SetBlendFunc(gl::ComputOption::SRC_ALPHA, gl::ComputOption::ONE_MINUS_SRC_ALPHA);
     gl::RenderContext::SetClearColor(.3f, .5f, .8f, 1.f);
@@ -291,7 +294,6 @@ void View::OnSceneDraw()
 #else
         gl::RenderContext::SetViewport(_viewports[i].x, _viewports[i].y, _viewports[i].z, _viewports[i].w);
 #endif
-
         mProgram->Use();
 
 #ifndef __EMSCRIPTEN__
@@ -409,10 +411,11 @@ void View::OnSceneDraw()
 
 void View::OnGUIDraw()
 {
-    {
+    /*{
         // Start the Dear ImGui frame
+	    ImGui_ImplOpenGL3_NewFrame();
+        
         ImGui_ImplGlfw_NewFrame();
-        //ImGui_ImplGlfw_3d_to_2d_NewFrame(mMousePos.x, mMousePos.y, mWidth, mHeight);
         ImGui::NewFrame();
 
         float fps = (*GImGui).IO.Framerate;
@@ -483,10 +486,11 @@ void View::OnGUIDraw()
         ImGui::End();
         ImGui::PopStyleColor();
 
+        ImGui::EndFrame();
         // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    }
+    }*/
 
     {
 #ifndef __EMSCRIPTEN__
