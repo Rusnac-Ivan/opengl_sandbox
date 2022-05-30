@@ -84,10 +84,6 @@ namespace Scene
 		uint32_t indexCount;
 		uint32_t vertexCount;
 
-		//std::unique_ptr<gl::VertexBuffer> vertices;
-		//std::unique_ptr<gl::IndexBuffer> indices;
-		//std::unique_ptr<gl::VertexArray> VAO;
-
 		gl::Primitive primitiveMode;
 
 		Material& material;

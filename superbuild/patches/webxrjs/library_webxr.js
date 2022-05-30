@@ -172,18 +172,44 @@ webxr_init: function(frameCallback, startSessionCallback, endSessionCallback, er
             });
             session.updateRenderState({ baseLayer: layer });
 
-            /* 'viewer' reference space is always available. */
-            session.requestReferenceSpace('local').then(refSpace => {
-                WebXR.refSpaces['local'] = refSpace;
+            /* 'viewer' reference space is always available. local-floor*/
+            session.requestReferenceSpace('local-floor').then(refSpace => {
+                WebXR.refSpaces['local-floor'] = refSpace;
 
-                WebXR.refSpace = 'local';
+                WebXR.refSpace = 'local-floor';
 
                 // Give application a chance to react to session starting
                 // e.g. finish current desktop frame.
                 onSessionStart(mode);
-
+                console.log("created local-floor reference space");
                 // Start rendering
                 session.requestAnimationFrame(onFrame);
+            }, (e) => {
+                session.requestReferenceSpace('local').then(refSpace => {
+                    WebXR.refSpaces['local'] = refSpace;
+    
+                    WebXR.refSpace = 'local';
+    
+                    // Give application a chance to react to session starting
+                    // e.g. finish current desktop frame.
+                    onSessionStart(mode);
+                    console.log("created local reference space");
+                    // Start rendering
+                    session.requestAnimationFrame(onFrame);
+                }, (e) =>{
+                    session.requestReferenceSpace('viewer').then(refSpace => {
+                        WebXR.refSpaces['viewer'] = refSpace;
+        
+                        WebXR.refSpace = 'viewer';
+        
+                        // Give application a chance to react to session starting
+                        // e.g. finish current desktop frame.
+                        onSessionStart(mode);
+                        console.log("created viewer reference space");
+                        // Start rendering
+                        session.requestAnimationFrame(onFrame);
+                    });
+                });
             });
 
             /* Request and cache other available spaces, which may not be available */
@@ -310,6 +336,7 @@ webxr_get_input_pose: function(source, outPosePtr, space) {
 
     const s = space == 0 ? input.gripSpace : input.targetRaySpace;
     if(!s) return false;
+    console.log(WebXR.refSpaces[WebXR.refSpace]);
     const pose = f.getPose(s, WebXR.refSpaces[WebXR.refSpace]);
 
     if(!pose || Number.isNaN(pose.transform.matrix[0])) return false;

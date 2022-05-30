@@ -122,21 +122,21 @@ void Window::Create(uint32_t width, uint32_t height, const char *windowName)
 
 			for (int i = 0; i < thiz->_controllerCount; ++i)
 			{
-				webxr_get_input_pose(sources + i, controllersPose + i);
+				webxr_get_input_pose(sources + i, controllersPose + i, WEBXR_INPUT_POSE_TARGET_RAY);
 
 				thiz->_controllerPos[i] = glm::vec3(controllersPose[i].position[0], controllersPose[i].position[1], controllersPose[i].position[2]);
 
 				glm::mat4 _controllerTranslate = glm::translate(glm::mat4(1.f), thiz->_controllerPos[i]);
 				glm::mat4 _controllerRotate = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]));
 
-				// thiz->_controllerPos[i] = glm::vec3(thiz->_headTranslateMat * thiz->_headTranslateMat * glm::vec4(thiz->_controllerPos[i], 1.f));
+				//thiz->_controllerPos[i] = glm::vec3(thiz->_headTranslateMat * thiz->_headTranslateMat * glm::vec4(thiz->_controllerPos[i], 1.f));
 
 				// thiz->_controllerOrientation[i] = glm::rotate(glm::mat4(1.f), glm::radians(40.f), glm::vec3(-1.f, 0.f, 0.f));
 				// thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2])) * thiz->_controllerOrientation[i];
 				thiz->_controllerOrientation[i] = glm::toMat4(glm::quat(controllersPose[i].orientation[3], controllersPose[i].orientation[0], controllersPose[i].orientation[1], controllersPose[i].orientation[2]));
 
 				// thiz->_controllerMatrix[i] = thiz->_headTranslateMat * thiz->_headTranslateMat * thiz->_headRotateMat * _controllerTranslate * _controllerRotate;
-				thiz->_controllerMatrix[i] = _controllerTranslate * _controllerRotate;
+				thiz->_controllerMatrix[i] =  _controllerTranslate * _controllerRotate;
 
 				// thiz->_controllerMatrix[i] = _controllerTranslate * _controllerRotate;
 
